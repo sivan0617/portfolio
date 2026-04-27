@@ -1,6 +1,7 @@
 import { type MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { MacbookScroll } from "@/components/ui/macbook-scroll";
 import type { Locale } from "@/components/AboutContactPages";
+import { toPublicAssetUrl } from "@/lib/utils";
 
 type AboutRequestPayload = {
   label: string;
@@ -38,7 +39,7 @@ const hoverLabels = {
 const GLITCH_TOKENS = ["0", "1", "_", "-", "·"];
 
 const linkedAnimationUrl = (locale: Locale) =>
-  `/vendor/dual-wave/index.html?sequence=3&controlled=1&stage=preview&loop=1&input=none&locale=${locale}`;
+  `${toPublicAssetUrl("/vendor/dual-wave/index.html")}?sequence=3&controlled=1&stage=preview&loop=1&input=none&locale=${locale}`;
 
 export default function MacbookScrollDemo({
   locale,
