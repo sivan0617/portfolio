@@ -1929,6 +1929,14 @@ a .contact-index__scramble {
     transform: none !important;
   }
 
+  .about-index--mobile-fallback .about-index__visual-window {
+    margin-top: 4.3rem;
+  }
+
+  .about-index--mobile-fallback .about-gooey__item {
+    width: min(16.5rem, 60vw, 34vh);
+  }
+
   .info-page__section--contact.contact-index {
     min-height: 100svh;
     padding: 0;
@@ -2104,10 +2112,25 @@ body.rxk-case-locked {
 }
 
 .rxk-detail-page__media-link {
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: block;
   color: inherit;
   text-decoration: none;
+}
+
+.rxk-detail-page__published-video {
+  position: relative;
+}
+
+.rxk-detail-page__published-player {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000;
+  pointer-events: none;
 }
 
 .rxk-detail-page__media img,

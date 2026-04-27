@@ -12,6 +12,44 @@
     <script type="module" crossorigin src="./assets/main-BzQOPG-Z.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/main-Cd5BlB9D.css">
     <script type="module">
+      const getSiteBasePath = () => {
+        const marker = "/vendor/dual-wave/";
+        const markerIndex = window.location.pathname.indexOf(marker);
+        if (markerIndex < 0) return "";
+        const basePath = window.location.pathname.slice(0, markerIndex);
+        return basePath.endsWith("/") ? basePath.slice(0, -1) : basePath;
+      };
+
+      const siteBasePath = getSiteBasePath();
+
+      const withSiteBase = (value) => {
+        if (!value || !value.startsWith("/") || value.startsWith("//") || !siteBasePath) {
+          return value;
+        }
+        return `${siteBasePath}${value}`;
+      };
+
+      const normalizePreviewAssets = (root = document) => {
+        const scope = root instanceof Element || root instanceof Document ? root : document;
+        const imageNodes = scope.querySelectorAll?.(".dual-wave-wrapper .wave-column-left .animated-text[data-image]");
+        imageNodes?.forEach((node) => {
+          const currentImage = node.getAttribute("data-image");
+          const normalizedImage = withSiteBase(currentImage);
+          if (currentImage && normalizedImage !== currentImage) {
+            node.setAttribute("data-image", normalizedImage);
+          }
+        });
+
+        const thumbnailNodes = scope.querySelectorAll?.(".dual-wave-wrapper .image-thumbnail");
+        thumbnailNodes?.forEach((node) => {
+          const currentSrc = node.getAttribute("src");
+          const normalizedSrc = withSiteBase(currentSrc);
+          if (currentSrc && normalizedSrc !== currentSrc) {
+            node.setAttribute("src", normalizedSrc);
+          }
+        });
+      };
+
       const getReferrerOrigin = () => {
         if (!document.referrer) return "";
         try {
@@ -147,7 +185,30 @@
           window.setTimeout(onReady, 120);
           return;
         }
+        normalizePreviewAssets();
         bindOverrideHandlers();
+
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === "attributes" && mutation.target instanceof HTMLElement) {
+              normalizePreviewAssets(mutation.target);
+              return;
+            }
+
+            mutation.addedNodes.forEach((node) => {
+              if (node instanceof HTMLElement) {
+                normalizePreviewAssets(node);
+              }
+            });
+          });
+        });
+
+        observer.observe(document.body, {
+          subtree: true,
+          childList: true,
+          attributes: true,
+          attributeFilter: ["src", "data-image"],
+        });
       };
 
       if (document.readyState === "loading") {

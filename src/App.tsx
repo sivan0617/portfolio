@@ -422,6 +422,8 @@ const getPlayableVideoUrl = (src: string) => {
   const localSrc = resolvePlayablePortfolioVideoSrc(src);
   return localSrc ? toPublicAssetUrl(localSrc) : null;
 };
+const canUseHoverPreview = () =>
+  typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 const uniqueMedia = (items: CaseMedia[]) => {
   const seen = new Set<string>();
@@ -1021,6 +1023,8 @@ function RxkCasePrototype({
   const lastTickRef = useRef<number | null>(null);
   const frameRef = useRef<number | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [hoverPreviewEnabled, setHoverPreviewEnabled] = useState(canUseHoverPreview);
+  const [hoveredPublishedVideo, setHoveredPublishedVideo] = useState<string | null>(null);
   const activeProject = localizeRxkProject(
     rxkProjects.find((project) => project.slug === workSlug) ?? rxkProjects[0],
     locale,
@@ -1196,6 +1200,27 @@ function RxkCasePrototype({
       tl.kill();
     };
   }, [rapidHalfwayMs, rapidPhase]);
+
+  useEffect(() => {
+    const mediaQuery =
+      typeof window === "undefined" ? null : window.matchMedia("(hover: hover) and (pointer: fine)");
+    const syncHoverPreview = () => {
+      const nextValue = canUseHoverPreview();
+      setHoverPreviewEnabled(nextValue);
+      if (!nextValue) {
+        setHoveredPublishedVideo(null);
+      }
+    };
+
+    syncHoverPreview();
+    mediaQuery?.addEventListener("change", syncHoverPreview);
+
+    return () => mediaQuery?.removeEventListener("change", syncHoverPreview);
+  }, []);
+
+  useEffect(() => {
+    setHoveredPublishedVideo(null);
+  }, [activeProject.slug]);
 
   useEffect(() => {
     if (!detailOpen) {
@@ -1404,16 +1429,45 @@ function RxkCasePrototype({
                     preload="metadata"
                   />
                 ) : item.type === "video" && getPublishedPortfolioVideo(item.src) ? (
-                  <a
-                    className="rxk-detail-page__media-link"
-                    href={getPublishedPortfolioVideo(item.src)?.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`${copy.watchVideo}: ${item.label}`}
+                  <div
+                    className="rxk-detail-page__published-video"
+                    onMouseEnter={() => {
+                      if (hoverPreviewEnabled) {
+                        setHoveredPublishedVideo(item.src);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredPublishedVideo((current) => (current === item.src ? null : current));
+                    }}
                   >
                     <img src={toPublicAssetUrl(item.poster)} alt="" loading={index < 2 ? "eager" : "lazy"} decoding="async" />
-                    <span className="rxk-detail-page__media-chip">{copy.watchVideo}</span>
-                  </a>
+                    {hoverPreviewEnabled && hoveredPublishedVideo === item.src ? (
+                      <iframe
+                        className="rxk-detail-page__published-player"
+                        title={`${item.label} preview`}
+                        src={`${getPublishedPortfolioVideo(item.src)?.embedUrl}&autoplay=1&muted=1&danmaku=0`}
+                        loading="lazy"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                      />
+                    ) : null}
+                    <a
+                      className="rxk-detail-page__media-link"
+                      href={getPublishedPortfolioVideo(item.src)?.url}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      aria-label={`${copy.watchVideo}: ${item.label}`}
+                      onFocus={() => {
+                        if (hoverPreviewEnabled) {
+                          setHoveredPublishedVideo(item.src);
+                        }
+                      }}
+                      onBlur={() => {
+                        setHoveredPublishedVideo((current) => (current === item.src ? null : current));
+                      }}
+                    >
+                      <span className="rxk-detail-page__media-chip">{copy.watchVideo}</span>
+                    </a>
+                  </div>
                 ) : (
                   <img src={toPublicAssetUrl(item.src)} alt="" loading={index < 2 ? "eager" : "lazy"} decoding="async" />
                 )}
@@ -1801,13 +1855,41 @@ function SequenceApp({
       postLoopDelta(delta, 0);
     };
 
+    const touchState = { active: false, lastY: 0 };
+    const handleTouchStart = (event: globalThis.TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      touchState.active = true;
+      touchState.lastY = event.touches[0].clientY;
+    };
+
+    const handleTouchMove = (event: globalThis.TouchEvent) => {
+      if (!touchState.active || event.touches.length !== 1) return;
+      const nextY = event.touches[0].clientY;
+      const deltaY = (touchState.lastY - nextY) * 1.35;
+
+      if (Math.abs(deltaY) < 0.6) return;
+
+      touchState.lastY = nextY;
+      event.preventDefault();
+      postLoopDelta(deltaY, 0);
+    };
+
+    const releaseTouch = () => {
+      touchState.active = false;
+    };
+
     const inputLayer = thirdInputRef.current;
     const wheelOptions = { passive: false, capture: true } as AddEventListenerOptions;
+    const touchOptions = { passive: false, capture: true } as AddEventListenerOptions;
 
     inputLayer?.addEventListener("wheel", handleWheel, wheelOptions);
     document.addEventListener("wheel", handleWheel, wheelOptions);
     window.addEventListener("wheel", handleWheel, wheelOptions);
     window.addEventListener("keydown", handleKeydown);
+    inputLayer?.addEventListener("touchstart", handleTouchStart, touchOptions);
+    inputLayer?.addEventListener("touchmove", handleTouchMove, touchOptions);
+    window.addEventListener("touchend", releaseTouch, touchOptions);
+    window.addEventListener("touchcancel", releaseTouch, touchOptions);
     window.requestAnimationFrame(() => inputLayer?.focus());
 
     return () => {
@@ -1815,6 +1897,10 @@ function SequenceApp({
       document.removeEventListener("wheel", handleWheel, wheelOptions);
       window.removeEventListener("wheel", handleWheel, wheelOptions);
       window.removeEventListener("keydown", handleKeydown);
+      inputLayer?.removeEventListener("touchstart", handleTouchStart, touchOptions);
+      inputLayer?.removeEventListener("touchmove", handleTouchMove, touchOptions);
+      window.removeEventListener("touchend", releaseTouch, touchOptions);
+      window.removeEventListener("touchcancel", releaseTouch, touchOptions);
     };
   }, [stage, thirdInputActive, thirdFrameReady]);
 

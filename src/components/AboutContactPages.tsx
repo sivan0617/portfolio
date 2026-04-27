@@ -115,8 +115,7 @@ type AboutStageWindow = typeof window & {
 
 const ABOUT_SCRIPT_ID = "about-gooey-script";
 
-const isTouchMobileAbout = () =>
-  window.matchMedia("(pointer: coarse)").matches && window.matchMedia("(max-width: 767px)").matches;
+const isTouchMobileAbout = () => window.matchMedia("(max-width: 900px)").matches;
 
 const normalizeAboutLayout = (app: NonNullable<AboutStageWindow["APP"]>) => {
   if (typeof app.Layout === "object" && app.Layout !== null) {
@@ -227,10 +226,34 @@ export function InfoNav({ locale, onLocaleToggle }: NavProps) {
 function AboutPage({ locale }: { locale: Locale }) {
   const about = copy[locale].about;
   const [animationFailed, setAnimationFailed] = useState(false);
+  const [mobileAboutFallback, setMobileAboutFallback] = useState(() =>
+    typeof window !== "undefined" ? isTouchMobileAbout() : false,
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const widthQuery = window.matchMedia("(max-width: 900px)");
+    const syncMobileAbout = () => setMobileAboutFallback(isTouchMobileAbout());
+
+    syncMobileAbout();
+    widthQuery.addEventListener("change", syncMobileAbout);
+
+    return () => {
+      widthQuery.removeEventListener("change", syncMobileAbout);
+    };
+  }, []);
 
   useEffect(() => {
     const guardedWindow = window as AboutStageWindow;
     setAnimationFailed(false);
+
+    if (mobileAboutFallback) {
+      setAnimationFailed(true);
+      disposeAboutStage();
+      document.getElementById(ABOUT_SCRIPT_ID)?.remove();
+      return;
+    }
 
     if (!guardedWindow.__sequenceAboutWarnGuard) {
       const originalWarn = console.warn.bind(console);
@@ -324,14 +347,20 @@ function AboutPage({ locale }: { locale: Locale }) {
       document.getElementById(ABOUT_SCRIPT_ID)?.remove();
       disposeAboutStage();
     };
-  }, []);
+  }, [mobileAboutFallback]);
+
+  const aboutPageClassName = [
+    "info-page__section",
+    "info-page__section--about",
+    "about-index",
+    animationFailed ? "about-index--animation-failed" : "",
+    mobileAboutFallback ? "about-index--mobile-fallback" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <section
-      className={`info-page__section info-page__section--about about-index${
-        animationFailed ? " about-index--animation-failed" : ""
-      }`}
-    >
+    <section className={aboutPageClassName}>
       <div className="about-index__visual-window info-page__about-visual about-gooey" aria-label="profile visual">
         <section className="about-gooey__content scrollarea-ctn">
           <div className="about-gooey__scrollarea scrollarea slideshow">
@@ -341,7 +370,11 @@ function AboutPage({ locale }: { locale: Locale }) {
                   <a href="#/about" aria-label="profile visual animation">
                     <figure className="about-gooey__figure tile__fig">
                       <img
-                        src={toPublicAssetUrl("/about-gooey/img/tiles/woods/portrait.png")}
+                        src={toPublicAssetUrl(
+                          mobileAboutFallback
+                            ? "/about-gooey/img/tiles/woods/code-hover.png"
+                            : "/about-gooey/img/tiles/woods/portrait.png",
+                        )}
                         data-hover={toPublicAssetUrl("/about-gooey/img/tiles/woods/code-hover.png")}
                         alt=""
                         className="about-gooey__image tile__img"
