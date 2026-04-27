@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>礦·Kuang Brand Philosophy</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'NotoSerifCJKsc-Regular';
+            src: url('https://assets-persist.lovart.ai/agent-static-assets/NotoSerifCJKsc-Regular.otf') format('opentype');
+        }
+        @font-face {
+            font-family: 'NotoSansHans-Regular';
+            src: url('https://assets-persist.lovart.ai/agent-static-assets/NotoSansHans-Regular.otf') format('opentype');
+        }
+        @font-face {
+            font-family: 'NotoSerifCJKsc-Bold';
+            src: url('https://assets-persist.lovart.ai/agent-static-assets/NotoSerifCJKsc-Bold.otf') format('opentype');
+        }
+
+        :root {
+            --bg-color: #F5F1E8;
+            --text-color: #2B2B2B;
+            --accent-color: #A39171;
+            --line-color: rgba(43, 43, 43, 0.2);
+            --serif-font: 'NotoSerifCJKsc-Regular', serif;
+            --serif-bold: 'NotoSerifCJKsc-Bold', serif;
+            --sans-font: 'NotoSansHans-Regular', sans-serif;
+            --content-width: 1920px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--sans-font);
+            display: flex;
+            justify-content: center;
+            width: var(--content-width);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Subtle Background Pattern */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(30deg, var(--line-color) 12%, transparent 12.5%, transparent 87%, var(--line-color) 87.5%, var(--line-color)),
+                linear-gradient(150deg, var(--line-color) 12%, transparent 12.5%, transparent 87%, var(--line-color) 87.5%, var(--line-color)),
+                linear-gradient(30deg, var(--line-color) 12%, transparent 12.5%, transparent 87%, var(--line-color) 87.5%, var(--line-color)),
+                linear-gradient(150deg, var(--line-color) 12%, transparent 12.5%, transparent 87%, var(--line-color) 87.5%, var(--line-color)),
+                linear-gradient(60deg, var(--line-color) 25%, transparent 25.5%, transparent 75%, var(--line-color) 75%, var(--line-color)),
+                linear-gradient(60deg, var(--line-color) 25%, transparent 25.5%, transparent 75%, var(--line-color) 75%, var(--line-color));
+            background-size: 80px 140px;
+            background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+            opacity: 0.03;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1600px;
+            padding: 100px 80px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 120px;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .logo-container {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid var(--line-color);
+            background: #fff;
+            padding: 10px;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .brand-name {
+            font-family: var(--serif-bold);
+            font-size: 48px;
+            letter-spacing: 0.2em;
+            margin: 0;
+        }
+
+        .slogan {
+            font-family: var(--serif-font);
+            font-size: 32px;
+            letter-spacing: 0.3em;
+            color: var(--accent-color);
+            margin: 0;
+            position: relative;
+            padding: 0 40px;
+        }
+
+        .slogan::before, .slogan::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 60px;
+            height: 1px;
+            background-color: var(--accent-color);
+        }
+
+        .slogan::before { left: -40px; }
+        .slogan::after { right: -40px; }
+
+        /* Main Content Section */
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 80px;
+            position: relative;
+        }
+
+        /* Column Dividers */
+        .main-content::before, .main-content::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, var(--line-color) 20%, var(--line-color) 80%, transparent);
+        }
+
+        .main-content::before { left: 33.33%; }
+        .main-content::after { left: 66.66%; }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-family: var(--serif-bold);
+            font-size: 36px;
+            letter-spacing: 0.1em;
+            text-align: center;
+            margin: 0;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--line-color);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '♦';
+            position: absolute;
+            bottom: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            color: var(--accent-color);
+            background: var(--bg-color);
+            padding: 0 10px;
+        }
+
+        .item-group {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .item-card {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(43, 43, 43, 0.1);
+            padding: 40px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .item-card:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .item-icon {
+            font-size: 28px;
+            color: var(--accent-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .item-title {
+            font-family: var(--serif-bold);
+            font-size: 24px;
+            letter-spacing: 0.05em;
+            margin: 0;
+        }
+
+        .item-title-en {
+            font-family: var(--sans-font);
+            font-size: 14px;
+            color: #666;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .item-list li {
+            font-size: 18px;
+            letter-spacing: 0.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #444;
+        }
+
+        .item-list li::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+        }
+
+        /* Specific Column Styles */
+        .col-center .item-card {
+            padding: 30px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .col-center .item-icon {
+            font-size: 32px;
+            background: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 1px solid var(--line-color);
+            flex-shrink: 0;
+        }
+
+        .col-center .content h4 {
+            font-family: var(--serif-bold);
+            font-size: 20px;
+            margin: 0 0 10px 0;
+            color: var(--accent-color);
+        }
+
+        .col-center .content p {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.5;
+            color: #444;
+        }
+
+        .col-right .item-card {
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* Footer Section */
+        .footer {
+            text-align: center;
+            padding-top: 60px;
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 1px;
+            background: var(--line-color);
+        }
+
+        .footer-text {
+            font-family: var(--serif-font);
+            font-size: 28px;
+            letter-spacing: 0.2em;
+            color: var(--text-color);
+            line-height: 2;
+            margin: 0;
+        }
+
+        .decoration-element {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .decoration-element i {
+            font-size: 24px;
+            color: var(--accent-color);
+            opacity: 0.6;
+        }
+
+        .decoration-line {
+            width: 100px;
+            height: 1px;
+            background: var(--line-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="logo-container">
+                <img src="https://a.lovart.ai/artifacts/generator/wnz9uy1EZaGx7tzs.png" alt="礦·Kuang Logo">
+            </div>
+            <h1 class="brand-name">礦·Kuang</h1>
+            <p class="slogan">戴上一块石头，稳住你的宇宙</p>
+        </header>
+
+        <!-- Main Content Section -->
+        <main class="main-content">
+            
+            <!-- Left Column: Philosophy -->
+            <div class="column col-left">
+                <h2 class="section-title">双核心设计哲学</h2>
+                
+                <div class="item-group">
+                    <div class="item-card">
+                        <div class="item-header">
+                            <i class="ri-checkbox-blank-circle-line item-icon"></i>
+                            <div>
+                                <h3 class="item-title">东方极简</h3>
+                                <span class="item-title-en">Oriental Minimalism</span>
+                            </div>
+                        </div>
+                        <ul class="item-list">
+                            <li>留白与呼吸感</li>
+                            <li>对称与平衡</li>
+                            <li>纯粹线条</li>
+                            <li>禅意美学</li>
+                        </ul>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-header">
+                            <i class="ri-hexagon-line item-icon"></i>
+                            <div>
+                                <h3 class="item-title">能量科学</h3>
+                                <span class="item-title-en">Energy Science</span>
+                            </div>
+                        </div>
+                        <ul class="item-list">
+                            <li>晶体学结构</li>
+                            <li>能量轨道</li>
+                            <li>几何精准</li>
+                            <li>科学理性</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Column: Positioning -->
+            <div class="column col-center">
+                <h2 class="section-title">品牌定位</h2>
+                
+                <div class="item-group">
+                    <div class="item-card">
+                        <i class="ri-vip-diamond-line item-icon"></i>
+                        <div class="content">
+                            <h4>产品属性</h4>
+                            <p>高端水晶珠宝</p>
+                        </div>
+                    </div>
+                    
+                    <div class="item-card">
+                        <i class="ri-group-line item-icon"></i>
+                        <div class="content">
+                            <h4>目标人群</h4>
+                            <p>25-45岁都市人群</p>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <i class="ri-heart-pulse-line item-icon"></i>
+                        <div class="content">
+                            <h4>价值主张</h4>
+                            <p>装饰 + 能量调节 + 情绪稳定</p>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <i class="ri-compass-3-line item-icon"></i>
+                        <div class="content">
+                            <h4>市场定位</h4>
+                            <p>高端轻奢 · 精神消费</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Values -->
+            <div class="column col-right">
+                <h2 class="section-title">核心价值</h2>
+                
+                <div class="item-group">
+                    <div class="item-card">
+                        <div class="item-header">
+                            <div>
+                                <h3 class="item-title">物质层面</h3>
+                                <span class="item-title-en">Material Dimension</span>
+                            </div>
+                        </div>
+                        <ul class="item-list">
+                            <li>天然水晶</li>
+                            <li>精致工艺</li>
+                            <li>独特设计</li>
+                        </ul>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-header">
+                            <div>
+                                <h3 class="item-title">精神层面</h3>
+                                <span class="item-title-en">Spiritual Dimension</span>
+                            </div>
+                        </div>
+                        <ul class="item-list">
+                            <li>能量调节</li>
+                            <li>情绪稳定</li>
+                            <li>内在成长</li>
+                        </ul>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-header">
+                            <div>
+                                <h3 class="item-title">美学层面</h3>
+                                <span class="item-title-en">Aesthetic Dimension</span>
+                            </div>
+                        </div>
+                        <ul class="item-list">
+                            <li>东方极简</li>
+                            <li>几何美感</li>
+                            <li>高级质感</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer Section -->
+        <footer class="footer">
+            <p class="footer-text">将东方极简美学与能量科学理念相融合的高端水晶珠宝品牌</p>
+            <div class="decoration-element">
+                <div class="decoration-line"></div>
+                <i class="ri-sketching"></i>
+                <div class="decoration-line"></div>
+            </div>
+        </footer>
+    </div>
+
+</body>
+</html>
