@@ -1100,7 +1100,11 @@ function RxkCasePrototype({
     ? uniqueMedia([previewCoverMedia, ...videoMedia])
     : uniqueMedia([...imageMedia, ...videoMedia]);
   const cycleSize = baseMedia.length;
+  // Desktop needs 3× copies for GSAP infinite scroll; mobile only needs 1×
+  const isMobileDetail =
+    typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches;
   const media = [...baseMedia, ...baseMedia, ...baseMedia];
+  const displayMedia = isMobileDetail ? baseMedia : media;
   const rapidLayerSource = uniqueMedia([
     previewCoverMedia,
     ...imageMedia,
@@ -1416,7 +1420,7 @@ function RxkCasePrototype({
       >
         <div className="rxk-detail-page__left" data-lenis-prevent-touch>
           <div className="rxk-detail-page__track" ref={trackRef}>
-            {media.map((item, index) => (
+            {displayMedia.map((item, index) => (
               <figure className="rxk-detail-page__media" key={`${item.src}-${index}`}>
                 {item.type === "video" && getPlayableVideoUrl(item.src) ? (
                   <video
