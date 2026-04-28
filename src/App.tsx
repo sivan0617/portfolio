@@ -1950,11 +1950,15 @@ function SequenceApp({
               }
             }
             // Dispatch openWorkDetail to self (parent window handles navigation)
+            // Use setTimeout to break out of touch event handler context,
+            // otherwise React's message handler may be blocked by event batching
             if (slug) {
-              window.postMessage(
-                { type: MESSAGE.openWorkDetail, slug },
-                location.origin,
-              );
+              setTimeout(() => {
+                window.postMessage(
+                  { type: MESSAGE.openWorkDetail, slug },
+                  location.origin,
+                );
+              }, 0);
             }
           } catch (_e) {
             // cross-origin — ignore
