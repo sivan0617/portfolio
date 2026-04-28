@@ -64,6 +64,26 @@
         return referrerOrigin || "http://127.0.0.1:5177" || "*";
       };
 
+      // Preload all preview cover images into browser cache so they're ready when swiping
+      const preloadPreviewAssets = () => {
+        const imageNodes = document.querySelectorAll(
+          ".dual-wave-wrapper .wave-column-left .animated-text[data-image]"
+        );
+        const preloaded = new Set();
+        imageNodes.forEach((node) => {
+          const src = node.getAttribute("data-image");
+          if (!src || !src.startsWith("/") || preloaded.has(src)) return;
+          preloaded.add(src);
+          const link = document.createElement("link");
+          link.rel = "preload";
+          link.as = "image";
+          link.href = withSiteBase(src);
+          // Use fetchPriority low to avoid blocking critical resources
+          link.fetchPriority = "low";
+          document.head.appendChild(link);
+        });
+      };
+
       let openDispatchLocked = false;
 
       const findSlugByThumbnail = () => {
@@ -187,6 +207,7 @@
         }
         normalizePreviewAssets();
         bindOverrideHandlers();
+        preloadPreviewAssets();
 
         const observer = new MutationObserver((mutations) => {
           mutations.forEach((mutation) => {
@@ -232,9 +253,10 @@
           <div class="image-thumbnail-wrapper">
             <div class="image-thumbnail-label image-thumbnail-title">礦-Kuang</div>
             <img
-              src="portfolio/kuang-folder-cover.jpg"
+              src="/portfolio/portfolio-web/kuang/礦品牌设计/封面.png.webp"
               alt="Selected portfolio work"
               class="image-thumbnail"
+              fetchpriority="high"
             />
             <div class="image-thumbnail-label image-thumbnail-year">2026</div>
           </div>
