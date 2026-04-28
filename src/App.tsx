@@ -1915,79 +1915,43 @@ function SequenceApp({
         const iframe = linkedFrameRef.current;
         if (iframe) {
           try {
-            const doc = iframe.contentDocument || (iframe.contentWindow as any)?.document;
-            if (doc) {
-              // Check what's under the tap point — only navigate if hitting a clickable element
-              const el = doc.elementFromPoint(ct.clientX, ct.clientY);
-              const clickableTarget = el?.closest?.(
-                ".image-thumbnail-wrapper, .image-thumbnail, .image-thumbnail-title, .image-thumbnail-year, .animated-text",
-              ) as HTMLElement | undefined;
-
-              if (clickableTarget) {
-                let slug: string | null = null;
-
-                // 1. Try getting data-slug from the clicked element or its ancestors
-                const withSlug = clickableTarget.closest?.("[data-slug]") as HTMLElement | undefined;
-                if (withSlug?.dataset?.slug) {
-                  slug = withSlug.dataset.slug;
-                }
-
-                // 2. Thumbnail <img> doesn't carry data-slug itself — match its src
-                //    against .animated-text[data-image] to find the correct work's slug
-                //    (mirrors findSlugByThumbnail() from dual-wave/index.html)
-                if (!slug) {
-                  const thumbImg = clickableTarget.closest?.(".image-thumbnail") as HTMLImageElement | undefined;
-                  if (thumbImg && thumbImg.src) {
-                    const matchedText = doc.querySelector(
-                      `.dual-wave-wrapper .wave-column-left .animated-text[data-image="${CSS.escape(thumbImg.getAttribute("src") || thumbImg.src)}"]`,
-                    ) as HTMLElement | undefined;
-                    slug = matchedText?.dataset?.slug || null;
-                  }
-                  // Also match by title text as secondary strategy
-                  if (!slug) {
-                    const titleEl = doc.querySelector(
-                      ".image-thumbnail-title",
-                    ) as HTMLElement | undefined;
-                    const currentTitle = titleEl?.textContent?.trim() || "";
-                    if (currentTitle) {
-                      const texts = doc.querySelectorAll(
-                        ".dual-wave-wrapper .wave-column-left .animated-text",
-                      );
-                      for (const t of texts) {
-                        if (
-                          t.textContent?.trim() === currentTitle ||
-                          t.dataset?.title === currentTitle
-                        ) {
-                          slug = (t as HTMLElement).dataset?.slug || null;
-                          break;
-                        }
-                      }
-                    }
-                  }
-                }
-
-                // 3. Last resort: use focused item or first animated-text (same as original)
-                if (!slug) {
+            const win = iframe.contentWindow as any;
+            // Try dual-wave's own resolveCurrentSlug() first
+            let slug: string | null = null;
+            if (typeof win.resolveCurrentSlug === "function") {
+              slug = win.resolveCurrentSlug();
+            }
+            // Fallback: read slug from DOM elements
+            if (!slug) {
+              const doc = iframe.contentDocument || win?.document;
+              if (doc) {
+                // 1. Try element at tap point or its ancestors with data-slug
+                const el = doc.elementFromPoint(ct.clientX, ct.clientY);
+                const thumb = el?.closest?.("[data-slug]") as HTMLElement | undefined;
+                if (thumb?.dataset?.slug) {
+                  slug = thumb.dataset.slug;
+                } else {
+                  // 2. Get the focused/active animated-text (current work)
                   const focusedText = doc.querySelector(
-                    ".dual-wave-wrapper .wave-column-left .animated-text.focused[data-slug]",
+                    ".animated-text.focused[data-slug]"
                   ) as HTMLElement | undefined;
                   slug = focusedText?.dataset?.slug || null;
-
-                  if (!slug) {
-                    const anyText = doc.querySelector(
-                      ".dual-wave-wrapper .wave-column-left .animated-text[data-slug]",
-                    ) as HTMLElement | undefined;
-                    slug = anyText?.dataset?.slug || null;
-                  }
                 }
-
-                // Navigate only when tapping on a real clickable element AND we resolved a slug
-                if (slug) {
-                  if (!workDetailNavigationRef.current) {
-                    workDetailNavigationRef.current = true;
-                    onWorkDetailRequest(slug);
-                  }
+                // 3. Last resort: first animated-text with data-slug
+                if (!slug) {
+                  const anyText = doc.querySelector(
+                    ".animated-text[data-slug]"
+                  ) as HTMLElement | undefined;
+                  slug = anyText?.dataset?.slug || null;
                 }
+              }
+            }
+            // Navigate to detail page — call prop directly instead of postMessage
+            // (postMessage approach had listener/timing issues on mobile touch)
+            if (slug) {
+              if (!workDetailNavigationRef.current) {
+                workDetailNavigationRef.current = true;
+                onWorkDetailRequest(slug);
               }
             }
           } catch (_e) {
