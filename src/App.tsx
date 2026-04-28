@@ -2370,7 +2370,7 @@ function SequenceApp({
               4,
             )}&locale=${locale}${thirdStageInstance ? `&v=${thirdStageInstance}` : ""}`}
             className={`sequence__third-frame ${
-              thirdFrameReady ? "sequence__third-frame--interactive" : ""
+              !thirdInputActive && thirdFrameReady ? "sequence__third-frame--interactive" : ""
             }`}
             scrolling={thirdInputActive ? "no" : "auto"}
             tabIndex={0}
