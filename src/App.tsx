@@ -1946,16 +1946,13 @@ function SequenceApp({
                 }
               }
             }
-            // Dispatch openWorkDetail to self (parent window handles navigation)
-            // Use setTimeout to break out of touch event handler context,
-            // otherwise React's message handler may be blocked by event batching
+            // Navigate to detail page — call prop directly instead of postMessage
+            // (postMessage approach had listener/timing issues on mobile touch)
             if (slug) {
-              setTimeout(() => {
-                window.postMessage(
-                  { type: MESSAGE.openWorkDetail, slug },
-                  location.origin,
-                );
-              }, 0);
+              if (!workDetailNavigationRef.current) {
+                workDetailNavigationRef.current = true;
+                onWorkDetailRequest(slug);
+              }
             }
           } catch (_e) {
             // cross-origin — ignore
