@@ -367,9 +367,10 @@ function AboutPage({ locale }: { locale: Locale }) {
     "about-index",
     animationFailed ? "about-index--animation-failed" : "",
     mobileAboutFallback ? "about-index--mobile-fallback" : "",
+    mobileAboutFallback && isImageTouched ? "about-index--touch-active" : "",
   ]
-    .filter(Boolean)
-    .join(" ");
+  .filter(Boolean)
+  .join(" ");
 
   return (
     <section className={aboutPageClassName}>
