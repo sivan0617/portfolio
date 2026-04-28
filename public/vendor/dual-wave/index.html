@@ -64,24 +64,39 @@
         return referrerOrigin || "http://127.0.0.1:5177" || "*";
       };
 
-      // Preload all preview cover images into browser cache so they're ready when swiping
+      // Preload all preview cover images into browser cache so they're ready when swiping.
+      // Called AFTER normalizePreviewAssets(), so data-image/src attrs already have siteBase applied — use them directly.
       const preloadPreviewAssets = () => {
-        const imageNodes = document.querySelectorAll(
-          ".dual-wave-wrapper .wave-column-left .animated-text[data-image]"
-        );
         const preloaded = new Set();
-        imageNodes.forEach((node) => {
+
+        // From animated-text data-image attrs (already normalized by normalizePreviewAssets)
+        document.querySelectorAll(
+          ".dual-wave-wrapper .wave-column-left .animated-text[data-image]"
+        ).forEach((node) => {
           const src = node.getAttribute("data-image");
-          if (!src || !src.startsWith("/") || preloaded.has(src)) return;
+          if (!src || preloaded.has(src)) return;
           preloaded.add(src);
           const link = document.createElement("link");
           link.rel = "preload";
           link.as = "image";
-          link.href = withSiteBase(src);
-          // Use fetchPriority low to avoid blocking critical resources
+          link.href = src; // Already normalized — use directly, don't call withSiteBase again
           link.fetchPriority = "low";
           document.head.appendChild(link);
         });
+
+        // Also preload the thumbnail image with high priority
+        const thumb = document.querySelector("img.image-thumbnail");
+        if (thumb) {
+          const thumbSrc = thumb.getAttribute("src") || thumb.src;
+          if (thumbSrc && !preloaded.has(thumbSrc)) {
+            const link = document.createElement("link");
+            link.rel = "preload";
+            link.as = "image";
+            link.href = thumbSrc;
+            link.fetchPriority = "high";
+            document.head.appendChild(link);
+          }
+        }
       };
 
       let openDispatchLocked = false;
