@@ -1582,6 +1582,9 @@ function SequenceApp({
   const thirdReadyRef = useRef(false);
   const thirdRetryRef = useRef(false);
   const workDetailNavigationRef = useRef(false);
+  const onWorkDetailRequestRef = useRef(onWorkDetailRequest);
+  // Keep ref in sync with latest prop — avoids stale closure in useEffect
+  onWorkDetailRequestRef.current = onWorkDetailRequest;
   const kineticTimersRef = useRef<number[]>([]);
   const handoffFinalizeTimerRef = useRef<number | null>(null);
   const handoffFinalizeFrameRef = useRef<number | null>(null);
@@ -1941,10 +1944,10 @@ function SequenceApp({
           }
         }
 
-        // 3. Navigate
+        // 3. Navigate — use ref to always get latest callback (avoids stale closure)
         if (slug) {
           workDetailNavigationRef.current = true;
-          onWorkDetailRequest(slug);
+          onWorkDetailRequestRef.current(slug);
         }
       } catch (_e) {
         // cross-origin — ignore
