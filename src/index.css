@@ -896,6 +896,7 @@ body.route-center-transitioning .info-nav {
   cursor: default;
   outline: none;
   touch-action: none;
+  pointer-events: none;
 }
 
 .sequence__works-meta {

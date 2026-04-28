@@ -1882,12 +1882,32 @@ function SequenceApp({
     const wheelOptions = { passive: false, capture: true } as AddEventListenerOptions;
     const touchOptions = { passive: false, capture: true } as AddEventListenerOptions;
 
+    // Wheel: triple-bind (inputLayer → document → window)
     inputLayer?.addEventListener("wheel", handleWheel, wheelOptions);
     document.addEventListener("wheel", handleWheel, wheelOptions);
     window.addEventListener("wheel", handleWheel, wheelOptions);
     window.addEventListener("keydown", handleKeydown);
-    inputLayer?.addEventListener("touchstart", handleTouchStart, touchOptions);
-    inputLayer?.addEventListener("touchmove", handleTouchMove, touchOptions);
+
+    // Touch: ALSO triple-bind on window/document so we capture swipes even without blocking overlay
+    // (inputLayer may be pointer-events:none to let clicks pass through)
+    const handledTouchEvents = new WeakSet<globalThis.TouchEvent>();
+    const wrappedTouchStart = (event: globalThis.TouchEvent) => {
+      if (handledTouchEvents.has(event)) return;
+      handledTouchEvents.add(event);
+      handleTouchStart(event);
+    };
+    const wrappedTouchMove = (event: globalThis.TouchEvent) => {
+      if (handledTouchEvents.has(event)) return;
+      handledTouchEvents.add(event);
+      handleTouchMove(event);
+    };
+
+    inputLayer?.addEventListener("touchstart", wrappedTouchStart, touchOptions);
+    document.addEventListener("touchstart", wrappedTouchStart, touchOptions);
+    window.addEventListener("touchstart", wrappedTouchStart, touchOptions);
+    inputLayer?.addEventListener("touchmove", wrappedTouchMove, touchOptions);
+    document.addEventListener("touchmove", wrappedTouchMove, touchOptions);
+    window.addEventListener("touchmove", wrappedTouchMove, touchOptions);
     window.addEventListener("touchend", releaseTouch, touchOptions);
     window.addEventListener("touchcancel", releaseTouch, touchOptions);
     window.requestAnimationFrame(() => inputLayer?.focus());
@@ -1897,8 +1917,12 @@ function SequenceApp({
       document.removeEventListener("wheel", handleWheel, wheelOptions);
       window.removeEventListener("wheel", handleWheel, wheelOptions);
       window.removeEventListener("keydown", handleKeydown);
-      inputLayer?.removeEventListener("touchstart", handleTouchStart, touchOptions);
-      inputLayer?.removeEventListener("touchmove", handleTouchMove, touchOptions);
+      inputLayer?.removeEventListener("touchstart", wrappedTouchStart, touchOptions);
+      document.removeEventListener("touchstart", wrappedTouchStart, touchOptions);
+      window.removeEventListener("touchstart", wrappedTouchStart, touchOptions);
+      inputLayer?.removeEventListener("touchmove", wrappedTouchMove, touchOptions);
+      document.removeEventListener("touchmove", wrappedTouchMove, touchOptions);
+      window.removeEventListener("touchmove", wrappedTouchMove, touchOptions);
       window.removeEventListener("touchend", releaseTouch, touchOptions);
       window.removeEventListener("touchcancel", releaseTouch, touchOptions);
     };
