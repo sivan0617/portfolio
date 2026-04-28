@@ -1925,13 +1925,27 @@ function SequenceApp({
             if (!slug) {
               const doc = iframe.contentDocument || win?.document;
               if (doc) {
+                // 1. Try element at tap point or its ancestors with data-slug
                 const el = doc.elementFromPoint(ct.clientX, ct.clientY);
                 const thumb = el?.closest?.("[data-slug]") as HTMLElement | undefined;
                 if (thumb?.dataset?.slug) {
                   slug = thumb.dataset.slug;
                 } else {
-                  const text = doc.querySelector(".dual-wave-wrapper .wave-column-left .animated-text[data-slug]") as HTMLElement | undefined;
-                  slug = text?.dataset?.slug || null;
+                  // 2. Get the focused/active animated-text (current work)
+                  const focusedText = doc.querySelector(
+                    ".animated-text.focused[data-slug]"
+                  ) as HTMLElement | undefined;
+                  slug = focusedText?.dataset?.slug || null;
+                }
+                // 3. Last resort: first animated-text with data-slug
+                if (!slug) {
+                  const anyText = doc.querySelector(
+                    ".animated-text[data-slug]"
+                  ) as HTMLElement | undefined;
+                  slug = anyText?.dataset?.slug || null;
+                }
+              }
+            }
                 }
               }
             }
