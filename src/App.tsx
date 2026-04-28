@@ -2021,6 +2021,23 @@ function SequenceApp({
     };
     window.addEventListener("click", handleClick, { capture: true });
 
+    // Desktop hover: show pointer cursor when hovering over clickable elements inside iframe
+    const handleMouseMove = (event: globalThis.MouseEvent) => {
+      const iframe = linkedFrameRef.current;
+      if (!iframe) return;
+      try {
+        const doc = iframe.contentDocument || (iframe.contentWindow as any)?.document;
+        if (!doc) return;
+        const el = doc.elementFromPoint(event.clientX, event.clientY);
+        if (!el) return;
+        const isClickable = !!el?.closest(
+          ".image-thumbnail-wrapper, .image-thumbnail, .image-thumbnail-title, .image-thumbnail-year, .animated-text",
+        );
+        document.body.style.cursor = isClickable ? "pointer" : "";
+      } catch (_e) { /* cross-origin */ }
+    };
+    window.addEventListener("mousemove", handleMouseMove, { capture: true });
+
     window.requestAnimationFrame(() => inputLayer?.focus());
 
     return () => {
@@ -2037,6 +2054,7 @@ function SequenceApp({
       window.removeEventListener("touchend", releaseTouch, touchOptions);
       window.removeEventListener("touchcancel", releaseTouch, touchOptions);
       window.removeEventListener("click", handleClick, { capture: true });
+      window.removeEventListener("mousemove", handleMouseMove, { capture: true });
     };
   }, [stage, thirdInputActive, thirdFrameReady]);
 
