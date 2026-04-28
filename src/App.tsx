@@ -1855,11 +1855,27 @@ function SequenceApp({
       postLoopDelta(delta, 0);
     };
 
-    const touchState = { active: false, lastY: 0 };
+    // Touch state for swipe detection AND tap detection
+    const TAP_THRESHOLD_PX = 10;   // max movement to count as tap
+    const TAP_THRESHOLD_MS = 300;  // max duration to count as tap
+    const touchState: {
+      active: boolean;
+      lastY: number;
+      startX: number;
+      startY: number;
+      startTime: number;
+      moved: boolean;
+    } = { active: false, lastY: 0, startX: 0, startY: 0, startTime: 0, moved: false };
+
     const handleTouchStart = (event: globalThis.TouchEvent) => {
       if (event.touches.length !== 1) return;
+      const t = event.touches[0];
       touchState.active = true;
-      touchState.lastY = event.touches[0].clientY;
+      touchState.lastY = t.clientY;
+      touchState.startX = t.clientX;
+      touchState.startY = t.clientY;
+      touchState.startTime = Date.now();
+      touchState.moved = false;
     };
 
     const handleTouchMove = (event: globalThis.TouchEvent) => {
@@ -1869,12 +1885,69 @@ function SequenceApp({
 
       if (Math.abs(deltaY) < 0.6) return;
 
+      touchState.moved = true;
       touchState.lastY = nextY;
       event.preventDefault();
       postLoopDelta(deltaY, 0);
     };
 
-    const releaseTouch = () => {
+    /** Called on touchend/touchcancel — detects taps and forwards click to iframe */
+    const releaseTouch = (event?: globalThis.TouchEvent) => {
+      if (!touchState.active) return;
+
+      // Detect tap: short duration + minimal movement
+      const duration = Date.now() - touchState.startTime;
+      const dx = event?.changedTouches?.[0]
+        ? Math.abs(event.changedTouches[0].clientX - touchState.startX)
+        : 999;
+      const dy = event?.changedTouches?.[0]
+        ? Math.abs(event.changedTouches[0].clientY - touchState.startY)
+        : 999;
+
+      const isTap =
+        !touchState.moved &&
+        duration < TAP_THRESHOLD_MS &&
+        Math.max(dx, dy) < TAP_THRESHOLD_PX &&
+        !!event?.changedTouches?.length;
+
+      if (isTap && event?.changedTouches?.[0]) {
+        const ct = event.changedTouches[0];
+        const iframe = linkedFrameRef.current;
+        if (iframe) {
+          try {
+            const win = iframe.contentWindow as any;
+            // Try dual-wave's own resolveCurrentSlug() first
+            let slug: string | null = null;
+            if (typeof win.resolveCurrentSlug === "function") {
+              slug = win.resolveCurrentSlug();
+            }
+            // Fallback: read slug from DOM elements
+            if (!slug) {
+              const doc = iframe.contentDocument || win?.document;
+              if (doc) {
+                const el = doc.elementFromPoint(ct.clientX, ct.clientY);
+                const thumb = el?.closest?.("[data-slug]") as HTMLElement | undefined;
+                if (thumb?.dataset?.slug) {
+                  slug = thumb.dataset.slug;
+                } else {
+                  const text = doc.querySelector(".dual-wave-wrapper .wave-column-left .animated-text[data-slug]") as HTMLElement | undefined;
+                  slug = text?.dataset?.slug || null;
+                }
+              }
+            }
+            // Dispatch openWorkDetail to self (parent window handles navigation)
+            if (slug) {
+              window.postMessage(
+                { type: MESSAGE.openWorkDetail, slug },
+                location.origin,
+              );
+            }
+          } catch (_e) {
+            // cross-origin — ignore
+          }
+        }
+      }
+
       touchState.active = false;
     };
 
@@ -1908,8 +1981,8 @@ function SequenceApp({
     inputLayer?.addEventListener("touchmove", wrappedTouchMove, touchOptions);
     document.addEventListener("touchmove", wrappedTouchMove, touchOptions);
     window.addEventListener("touchmove", wrappedTouchMove, touchOptions);
-    window.addEventListener("touchend", releaseTouch, touchOptions);
-    window.addEventListener("touchcancel", releaseTouch, touchOptions);
+    window.addEventListener("touchend", (e) => releaseTouch(e as globalThis.TouchEvent), touchOptions);
+    window.addEventListener("touchcancel", (e) => releaseTouch(e as globalThis.TouchEvent), touchOptions);
     window.requestAnimationFrame(() => inputLayer?.focus());
 
     return () => {
