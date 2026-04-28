@@ -2540,6 +2540,23 @@ function App() {
     setRoute(nextRoute);
   }, []);
 
+  // Preload rapid-layer images for ALL projects when entering works page,
+  // so they're ready in cache by the time user clicks any item
+  const preloadAllRapidImages = useCallback(() => {
+    const loaded = new Set<string>();
+    rxkProjects.forEach((project) => {
+      const media = getRapidLayerMedia(project.slug, locale);
+      media.forEach((m) => {
+        const url = m.type === "image" ? m.src : m.poster;
+        if (url && !loaded.has(url)) {
+          loaded.add(url);
+          const img = new Image();
+          img.src = url; // fire-and-forget: browser caches on load
+        }
+      });
+    });
+  }, [locale]);
+
   const startWorkDetailTransition = useCallback(
     (slug: string) => {
       window.sessionStorage.removeItem(RXK_AUTOSTART_KEY);
@@ -2565,7 +2582,9 @@ function App() {
     }
     routeRef.current = nextRoute;
     setRoute(nextRoute);
-  }, []);
+    // Preload all project images in background so rapid transitions don't black-screen
+    preloadAllRapidImages();
+  }, [preloadAllRapidImages]);
 
   const scheduleAboutTransition = (callback: () => void, delay: number) => {
     const timer = window.setTimeout(callback, delay);
