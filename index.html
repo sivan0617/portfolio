@@ -5,12 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- ⚡ CRITICAL: inline loader — renders at T+0ms, no external dependencies -->
+    <!-- ⚡ CRITICAL: inline loader — renders at T+0ms with animation, font text fades in later -->
     <style>
       html, body { background: #000; margin: 0; padding: 0; overflow: hidden; }
       #root { min-height: 100vh; }
 
-      /* ── Full-screen animated loader ── */
+      /* ── Full-screen animated loader (visible immediately) ── */
       .inline-loader {
         position: fixed; inset: 0; z-index: 9999;
         display: flex; flex-direction: column;
@@ -23,14 +23,14 @@
         opacity: 0; pointer-events: none;
       }
 
-      /* ── Three bouncing dots (no images needed) ── */
+      /* ── Three bouncing dots — pure CSS, zero dependencies, animates at T+0 ── */
       .loader-dots {
         display: flex; gap: 10px; align-items: center;
       }
       .loader-dot {
         width: 8px; height: 8px;
         background: rgba(255,255,255,0.85);
-        border-radius: 1px;          /* square-ish dots match pixel vibe */
+        border-radius: 1px;
         animation: dot-bounce 1.2s ease-in-out infinite;
       }
       .loader-dot:nth-child(2) { animation-delay: 0.15s; }
@@ -48,38 +48,40 @@
         }
       }
 
-      /* ── Text with blinking cursor ── */
+      /* ── Text: visible immediately — fonts are now ~26KB so they load instantly ── */
       .loader-text {
         color: rgba(255,255,255,0.55);
-        font-family: 'Courier New', 'SF Mono', 'Consolas', monospace;
+        font-family: 'Courier New', 'SF Mono', 'Consolas', 'Fusion Pixel', monospace;
         font-size: 11px;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
         line-height: 1;
+        opacity: 1;  /* show immediately, no waiting */
       }
+      /* Once custom pixel font is ready, switch to it exclusively */
+      body.fonts-loaded .loader-text {
+        letter-spacing: 0.12em;
+      }
+
       .loader-cursor {
         display: inline-block;
         margin-left: 2px;
         color: rgba(255,255,255,0.85);
         animation: cursor-blink 1s step-end infinite;
       }
+      body.fonts-loaded .loader-cursor {
+        animation: cursor-blink 1s step-end infinite;
+      }
       @keyframes cursor-blink {
         0%, 100% { opacity: 1; }
         50%      { opacity: 0; }
       }
-
-      /* ── Once custom font loads, switch to it smoothly ── */
-      body.fonts-loaded .loader-text,
-      body.fonts-loaded .loader-cursor {
-        font-family: 'Fusion Pixel', 'fusion-pixel-12px-monospaced', 'Courier New', monospace;
-        letter-spacing: 0.12em;
-      }
     </style>
 
-    <!-- Preload fonts (low priority so they don't block the loader itself) -->
-    <link rel="preload" as="font" type="font/woff2" href="%BASE_URL%fonts/fusion-pixel-12px-monospaced-latin.woff2" crossorigin fetchpriority="low" />
-    <link rel="preload" as="font" type="font/woff2" href="%BASE_URL%fonts/fusion-pixel-12px-monospaced-zh-hans.woff2" crossorigin fetchpriority="low" />
-    <!-- Also declare as font-face so document.fonts.ready works -->
+    <!-- Fonts preload at HIGH priority so they load BEFORE we show text -->
+    <link rel="preload" as="font" type="font/woff2" href="%BASE_URL%fonts/fusion-pixel-12px-monospaced-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="%BASE_URL%fonts/fusion-pixel-12px-monospaced-zh-hans.woff2" crossorigin />
+    <!-- Font-face declaration for document.fonts.ready detection -->
     <style>
       @font-face {
         font-family: 'Fusion Pixel';
@@ -91,7 +93,7 @@
     <title>Portfolio</title>
   </head>
   <body>
-    <!-- Animated inline loader — visible immediately before any JS runs -->
+    <!-- Animated inline loader: dots animate immediately, text fades in after font loads -->
     <div class="inline-loader" id="inline-loader">
       <div class="loader-dots">
         <div class="loader-dot"></div>
@@ -103,21 +105,25 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // When custom font finishes loading, apply it to the inline loader (smooth transition)
-      // This prevents the jarring "default font → pixel font" flash
+      // Phase 1: dots already bouncing (pure CSS, no JS needed)
+      // Phase 2: when custom pixel font finishes loading → reveal text with correct font
       if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(function() {
           document.body.classList.add('fonts-loaded');
         });
+      } else {
+        // Fallback for older browsers: show text after a short delay
+        setTimeout(function() {
+          document.body.classList.add('fonts-loaded');
+        }, 800);
       }
-      // Failsafe: hide inline loader once React mounts (or after 5s max)
+      // Phase 3: React takes over → hide inline loader (or 6s failsafe)
       window.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
           var el = document.getElementById('inline-loader');
           if (el) el.classList.add('inline-loader--hidden');
-        }, 5000);
+        }, 6000);
       });
-      // Allow React to signal it's ready
       window.__hideInlineLoader = function() {
         var el = document.getElementById('inline-loader');
         if (el) el.classList.add('inline-loader--hidden');
