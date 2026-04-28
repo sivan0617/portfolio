@@ -61,7 +61,7 @@ const MESSAGE = {
 const LOADING_ANIMATION_URL = `${FRAME_PATHS.loader}?sequence=1&loader=actual-home`;
 const LINKED_ANIMATION_URL =
   `${FRAME_PATHS.dualWave}?sequence=3&controlled=1&stage=preview&loop=1&input=none`;
-const THIRD_STAGE_INPUT_MODE: "parent" | "self" = "self";
+const THIRD_STAGE_INPUT_MODE: "parent" | "self" = "parent";
 const THIRD_STAGE_BASE_URL = `${FRAME_PATHS.dualWave}?sequence=3&stage=third&loop=1&input=${THIRD_STAGE_INPUT_MODE}`;
 const LOCALE_KEY = "sivan.locale";
 const RXK_AUTOSTART_KEY = "sivan.rxk.autostart";
