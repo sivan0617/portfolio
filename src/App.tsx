@@ -2015,7 +2015,8 @@ function SequenceApp({
     window.addEventListener("touchcancel", (e) => releaseTouch(e as globalThis.TouchEvent), touchOptions);
 
     // Desktop click: navigate when clicking on a thumbnail / work item inside the iframe
-    const handleClick = (event: MouseEvent) => {
+    // Use native MouseEvent (not React's) for window.addEventListener compatibility
+    const handleClick = (event: globalThis.MouseEvent) => {
       tryNavigateFromPoint(event.clientX, event.clientY);
     };
     window.addEventListener("click", handleClick, { capture: true });
