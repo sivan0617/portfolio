@@ -2549,10 +2549,37 @@ function App() {
         return;
       }
 
-      setWorkRapidTransition({
-        slug,
-        media: getRapidLayerMedia(slug, locale),
+      // Preload rapid-layer images before starting the transition to avoid black screen
+      const media = getRapidLayerMedia(slug, locale);
+      const imageUrls = new Set(
+        media.map((m) => m.type === "image" ? m.src : m.poster).filter(Boolean),
+      );
+      let settled = false;
+      const PRELOAD_TIMEOUT_MS = 3000; // fallback: start anyway after 3s
+
+      Promise.all(
+        Array.from(imageUrls).map(
+          (url) =>
+            new Promise<void>((resolve) => {
+              const img = new Image();
+              img.onload = () => resolve();
+              img.onerror = () => resolve(); // still proceed on error
+              img.src = url;
+            }),
+        ),
+      ).then(() => {
+        if (!settled) {
+          setWorkRapidTransition({ slug, media });
+          settled = true;
+        }
       });
+
+      setTimeout(() => {
+        if (!settled) {
+          setWorkRapidTransition({ slug, media });
+          settled = true;
+        }
+      }, PRELOAD_TIMEOUT_MS);
     },
     [applyWorkDetailRoute, locale],
   );
