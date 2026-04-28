@@ -1600,6 +1600,8 @@ function SequenceApp({
   const [loaderFrameReady, setLoaderFrameReady] = useState(false);
   const [homeAnimationReady, setHomeAnimationReady] = useState(false);
   const [loaderReady, setLoaderReady] = useState(false);
+  const [fontsReady, setFontsReady] = useState(false);
+  const [preloadComplete, setPreloadComplete] = useState(false);
   const [loaderStatusIndex, setLoaderStatusIndex] = useState(0);
   const [stage, setStage] = useState<"sequence" | "third">(initialStage);
   const [thirdInitialProgress, setThirdInitialProgress] = useState(0);
@@ -1756,53 +1758,91 @@ function SequenceApp({
   }, [onWorkDetailRequest]);
 
   useEffect(() => {
-    const progress = homeAnimationReady
+    // Only send loaderComplete when EVERYTHING is actually ready — no more lying to the user
+    const allReady =
+      homeAnimationReady &&
+      loaderFrameReady &&
+      fontsReady &&
+      preloadComplete;
+
+    const progress = allReady
       ? 1
-      : loaderFrameReady
-        ? Math.max(0.28 + loaderStatusIndex * 0.08, 0.35) // scales with status step
-        : 0.08;
+      : homeAnimationReady
+        ? Math.max(0.72, 0.72 + (fontsReady ? 0.12 : 0) + (preloadComplete ? 0.16 : 0))
+        : loaderFrameReady
+          ? Math.max(0.28 + loaderStatusIndex * 0.08, 0.35)
+          : 0.08;
 
     postToFrame(
       loaderFrameRef.current,
       {
-        type: homeAnimationReady ? MESSAGE.loaderComplete : MESSAGE.loaderProgress,
+        type: allReady ? MESSAGE.loaderComplete : MESSAGE.loaderProgress,
         progress,
-        status: loaderStatusMessages[loaderStatusIndex],
+        status: allReady
+          ? "✓ 加载完成 · 点击进入"
+          : loaderStatusMessages[loaderStatusIndex],
       },
       getFrameTargetOrigin(),
     );
-  }, [homeAnimationReady, loaderFrameReady, loaderStatusIndex]);
+  }, [homeAnimationReady, loaderFrameReady, fontsReady, preloadComplete, loaderStatusIndex]);
 
-  // Preload ALL project images during loader phase so they're cached before entry
+  // Preload ALL project images during loader phase — track completion so we can gate on it
   useEffect(() => {
     if (!loaderFrameReady || !showLoader) return;
     const loaded = new Set<string>();
+    const promises: Promise<void>[] = [];
     rxkProjects.forEach((project) => {
       const media = getRapidLayerMedia(project.slug, locale);
       media.forEach((m) => {
         const url = m.type === "image" ? m.src : m.poster;
         if (url && !loaded.has(url)) {
           loaded.add(url);
-          const img = new Image();
-          img.src = url; // fire-and-forget: browser caches on load
+          promises.push(
+            new Promise<void>((resolve) => {
+              const img = new Image();
+              img.onload = () => resolve();
+              img.onerror = () => resolve(); // still resolve on error — don't block forever
+              img.src = url;
+            }),
+          );
         }
       });
     });
+    Promise.all(promises).then(() => setPreloadComplete(true));
   }, [loaderFrameReady, showLoader, locale]);
 
+  // Track custom font loading completion — fonts are the first visual impression
   useEffect(() => {
-    if (homeAnimationReady && loaderFrameReady) {
+    if (!showLoader || !document.fonts) return;
+    document.fonts.ready.then(() => setFontsReady(true));
+  }, [showLoader]);
+
+  useEffect(() => {
+    if (homeAnimationReady && loaderFrameReady && fontsReady && preloadComplete) {
       const timer = window.setTimeout(() => setLoaderReady(true), 620);
 
       return () => window.clearTimeout(timer);
     }
-  }, [homeAnimationReady, loaderFrameReady]);
+  }, [homeAnimationReady, loaderFrameReady, fontsReady, preloadComplete]);
 
   useEffect(() => {
     if (!showLoader) return;
 
-    if (homeAnimationReady) {
+    // Only show final "ready" status when everything is truly ready
+    const allReady =
+      homeAnimationReady &&
+      loaderFrameReady &&
+      fontsReady &&
+      preloadComplete;
+
+    if (allReady) {
       setLoaderStatusIndex(loaderStatusMessages.length - 1);
+      return;
+    }
+
+    if (homeAnimationReady) {
+      // dualWave ready but still waiting for fonts or preload — stay near end
+      setLoaderStatusIndex(loaderStatusMessages.length - 2); // "同步作品索引…"
       return;
     }
 
