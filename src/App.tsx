@@ -2149,6 +2149,7 @@ function SequenceApp({
   };
 
   const handleThirdStageClick = (event: MouseEvent<HTMLDivElement>) => {
+    // Forward click coordinates to iframe via postMessage
     postToFrame(
       linkedFrameRef.current,
       {
@@ -2158,6 +2159,26 @@ function SequenceApp({
       },
       getFrameTargetOrigin(),
     );
+
+    // Also dispatch click directly into iframe content (same-origin)
+    const iframe = linkedFrameRef.current;
+    if (!iframe) return;
+    try {
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) return;
+      const target = iframeDoc.elementFromPoint(event.clientX, event.clientY);
+      if (target) {
+        target.dispatchEvent(new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          clientX: event.clientX,
+          clientY: event.clientY,
+          view: iframe.contentWindow,
+        }));
+      }
+    } catch (_e) {
+      // Cross-origin or other error — ignore, postMessage path already tried
+    }
   };
 
   return (
