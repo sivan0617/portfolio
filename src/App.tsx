@@ -1891,7 +1891,67 @@ function SequenceApp({
       postLoopDelta(deltaY, 0);
     };
 
-    /** Called on touchend/touchcancel — detects taps and forwards click to iframe */
+    /** Shared helper: check if a point (clientX,Y) hits a clickable element in the iframe and navigate */
+    const tryNavigateFromPoint = (clientX: number, clientY: number) => {
+      const iframe = linkedFrameRef.current;
+      if (!iframe || workDetailNavigationRef.current) return;
+      try {
+        const doc = iframe.contentDocument || (iframe.contentWindow as any)?.document;
+        if (!doc) return;
+
+        // 1. Only navigate if tapping/clicking an actual clickable element
+        const el = doc.elementFromPoint(clientX, clientY);
+        const clickableTarget = el?.closest?.(
+          ".image-thumbnail-wrapper, .image-thumbnail, .image-thumbnail-title, .image-thumbnail-year, .animated-text",
+        ) as HTMLElement | undefined;
+
+        if (!clickableTarget) return; // empty space → do nothing
+
+        // 2. Resolve slug from the hit element
+        let slug: string | null = null;
+
+        // 2a. data-slug on the element or its ancestors
+        const withSlug = clickableTarget.closest?.("[data-slug]") as HTMLElement | undefined;
+        if (withSlug?.dataset?.slug) {
+          slug = withSlug.dataset.slug;
+        }
+
+        // 2b. Thumbnail <img> has no data-slug — match src against .animated-text[data-image]
+        if (!slug) {
+          const thumbImg = clickableTarget.closest?.(".image-thumbnail") as HTMLImageElement | undefined;
+          if (thumbImg?.src) {
+            const matchedText = doc.querySelector(
+              `.dual-wave-wrapper .wave-column-left .animated-text[data-image="${CSS.escape(thumbImg.getAttribute("src") || thumbImg.src)}"]`,
+            ) as HTMLElement | undefined;
+            slug = matchedText?.dataset?.slug || null;
+          }
+        }
+
+        // 2c. Fallback: focused item or first animated-text
+        if (!slug) {
+          const focusedText = doc.querySelector(
+            ".dual-wave-wrapper .wave-column-left .animated-text.focused[data-slug]",
+          ) as HTMLElement | undefined;
+          slug = focusedText?.dataset?.slug || null;
+          if (!slug) {
+            const anyText = doc.querySelector(
+              ".dual-wave-wrapper .wave-column-left .animated-text[data-slug]",
+            ) as HTMLElement | undefined;
+            slug = anyText?.dataset?.slug || null;
+          }
+        }
+
+        // 3. Navigate
+        if (slug) {
+          workDetailNavigationRef.current = true;
+          onWorkDetailRequest(slug);
+        }
+      } catch (_e) {
+        // cross-origin — ignore
+      }
+    };
+
+    /** Called on touchend/touchcancel — detects taps and navigates if hitting a clickable element */
     const releaseTouch = (event?: globalThis.TouchEvent) => {
       if (!touchState.active) return;
 
@@ -1912,52 +1972,7 @@ function SequenceApp({
 
       if (isTap && event?.changedTouches?.[0]) {
         const ct = event.changedTouches[0];
-        const iframe = linkedFrameRef.current;
-        if (iframe) {
-          try {
-            const win = iframe.contentWindow as any;
-            // Try dual-wave's own resolveCurrentSlug() first
-            let slug: string | null = null;
-            if (typeof win.resolveCurrentSlug === "function") {
-              slug = win.resolveCurrentSlug();
-            }
-            // Fallback: read slug from DOM elements
-            if (!slug) {
-              const doc = iframe.contentDocument || win?.document;
-              if (doc) {
-                // 1. Try element at tap point or its ancestors with data-slug
-                const el = doc.elementFromPoint(ct.clientX, ct.clientY);
-                const thumb = el?.closest?.("[data-slug]") as HTMLElement | undefined;
-                if (thumb?.dataset?.slug) {
-                  slug = thumb.dataset.slug;
-                } else {
-                  // 2. Get the focused/active animated-text (current work)
-                  const focusedText = doc.querySelector(
-                    ".animated-text.focused[data-slug]"
-                  ) as HTMLElement | undefined;
-                  slug = focusedText?.dataset?.slug || null;
-                }
-                // 3. Last resort: first animated-text with data-slug
-                if (!slug) {
-                  const anyText = doc.querySelector(
-                    ".animated-text[data-slug]"
-                  ) as HTMLElement | undefined;
-                  slug = anyText?.dataset?.slug || null;
-                }
-              }
-            }
-            // Navigate to detail page — call prop directly instead of postMessage
-            // (postMessage approach had listener/timing issues on mobile touch)
-            if (slug) {
-              if (!workDetailNavigationRef.current) {
-                workDetailNavigationRef.current = true;
-                onWorkDetailRequest(slug);
-              }
-            }
-          } catch (_e) {
-            // cross-origin — ignore
-          }
-        }
+        tryNavigateFromPoint(ct.clientX, ct.clientY);
       }
 
       touchState.active = false;
@@ -1995,6 +2010,13 @@ function SequenceApp({
     window.addEventListener("touchmove", wrappedTouchMove, touchOptions);
     window.addEventListener("touchend", (e) => releaseTouch(e as globalThis.TouchEvent), touchOptions);
     window.addEventListener("touchcancel", (e) => releaseTouch(e as globalThis.TouchEvent), touchOptions);
+
+    // Desktop click: navigate when clicking on a thumbnail / work item inside the iframe
+    const handleClick = (event: MouseEvent) => {
+      tryNavigateFromPoint(event.clientX, event.clientY);
+    };
+    window.addEventListener("click", handleClick, { capture: true });
+
     window.requestAnimationFrame(() => inputLayer?.focus());
 
     return () => {
@@ -2010,6 +2032,7 @@ function SequenceApp({
       window.removeEventListener("touchmove", wrappedTouchMove, touchOptions);
       window.removeEventListener("touchend", releaseTouch, touchOptions);
       window.removeEventListener("touchcancel", releaseTouch, touchOptions);
+      window.removeEventListener("click", handleClick, { capture: true });
     };
   }, [stage, thirdInputActive, thirdFrameReady]);
 
