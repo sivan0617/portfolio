@@ -1938,6 +1938,24 @@ a .contact-index__scramble {
     width: min(16.5rem, 60vw, 34vh);
   }
 
+  /* Mobile: smooth image crossfade when touching (portrait ↔ code-hover) */
+  .about-index--mobile-fallback .about-gooey__image {
+    transition: opacity 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Mobile: visual feedback when user is touching the image area */
+  .about-index__visual-window--touched {
+    /* Subtle scale to give tactile feedback */
+    transform: scale(1.02);
+    transition: transform 200ms ease-out;
+  }
+
+  .about-index__visual-window--touched .about-index__copy,
+  .about-index__visual-window--touched .about-index__side-notes {
+    color: rgba(255, 255, 255, 0.92);
+    transition: color 280ms ease;
+  }
+
   .info-page__section--contact.contact-index {
     min-height: 100svh;
     padding: 0;

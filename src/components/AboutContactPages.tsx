@@ -229,6 +229,18 @@ function AboutPage({ locale }: { locale: Locale }) {
   const [mobileAboutFallback, setMobileAboutFallback] = useState(() =>
     typeof window !== "undefined" ? isTouchMobileAbout() : false,
   );
+  const [isImageTouched, setIsImageTouched] = useState(false);
+
+  // Mobile: touch the visual window → toggle between portrait and code-hover image
+  // Mimics desktop hover experience where touching shows the code-hover state
+  const handleVisualTouchStart = () => {
+    if (!mobileAboutFallback) return;
+    setIsImageTouched(true);
+  };
+  const handleVisualTouchEnd = () => {
+    if (!mobileAboutFallback) return;
+    setIsImageTouched(false);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -361,7 +373,13 @@ function AboutPage({ locale }: { locale: Locale }) {
 
   return (
     <section className={aboutPageClassName}>
-      <div className="about-index__visual-window info-page__about-visual about-gooey" aria-label="profile visual">
+      <div
+        className={`about-index__visual-window info-page__about-visual about-gooey${mobileAboutFallback && isImageTouched ? " about-index__visual-window--touched" : ""}`}
+        aria-label="profile visual"
+        onTouchStart={handleVisualTouchStart}
+        onTouchEnd={handleVisualTouchEnd}
+        onTouchCancel={handleVisualTouchEnd}
+      >
         <section className="about-gooey__content scrollarea-ctn">
           <div className="about-gooey__scrollarea scrollarea slideshow">
             <ul className="about-gooey__list slideshow-list">
@@ -371,13 +389,13 @@ function AboutPage({ locale }: { locale: Locale }) {
                     <figure className="about-gooey__figure tile__fig">
                       <img
                         src={toPublicAssetUrl(
-                          mobileAboutFallback
+                          mobileAboutFallback && isImageTouched
                             ? "/about-gooey/img/tiles/woods/code-hover.png"
                             : "/about-gooey/img/tiles/woods/portrait.png",
                         )}
                         data-hover={toPublicAssetUrl("/about-gooey/img/tiles/woods/code-hover.png")}
                         alt=""
-                        className="about-gooey__image tile__img"
+                        className={`about-gooey__image tile__img${mobileAboutFallback && isImageTouched ? " is-loaded" : ""}`}
                       />
                     </figure>
                   </a>
