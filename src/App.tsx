@@ -1946,9 +1946,6 @@ function SequenceApp({
                 }
               }
             }
-                }
-              }
-            }
             // Dispatch openWorkDetail to self (parent window handles navigation)
             // Use setTimeout to break out of touch event handler context,
             // otherwise React's message handler may be blocked by event batching
