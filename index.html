@@ -4,38 +4,124 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- ⚡ CRITICAL: inline black background — prevents white flash before CSS loads -->
+
+    <!-- ⚡ CRITICAL: inline loader — renders at T+0ms, no external dependencies -->
     <style>
-      html, body { background: #000; margin: 0; padding: 0; }
+      html, body { background: #000; margin: 0; padding: 0; overflow: hidden; }
       #root { min-height: 100vh; }
-      /* Minimal inline loader: shows immediately, replaced once React mounts */
+
+      /* ── Full-screen animated loader ── */
       .inline-loader {
         position: fixed; inset: 0; z-index: 9999;
-        display: flex; align-items: center; justify-content: center;
-        background: #000; color: rgba(255,255,255,0.7);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        font-size: 14px; letter-spacing: 0.12em;
-        transition: opacity 0.3s ease;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 32px;
+        background: #000;
+        transition: opacity 0.6s ease-out;
       }
-      .inline-loader--hidden { opacity: 0; pointer-events: none; }
+      .inline-loader--hidden {
+        opacity: 0; pointer-events: none;
+      }
+
+      /* ── Three bouncing dots (no images needed) ── */
+      .loader-dots {
+        display: flex; gap: 10px; align-items: center;
+      }
+      .loader-dot {
+        width: 8px; height: 8px;
+        background: rgba(255,255,255,0.85);
+        border-radius: 1px;          /* square-ish dots match pixel vibe */
+        animation: dot-bounce 1.2s ease-in-out infinite;
+      }
+      .loader-dot:nth-child(2) { animation-delay: 0.15s; }
+      .loader-dot:nth-child(3) { animation-delay: 0.30s; }
+      @keyframes dot-bounce {
+        0%, 60%, 100% { 
+          transform: translateY(0); 
+          opacity: 0.35;
+          background: rgba(255,255,255,0.4);
+        }
+        30% { 
+          transform: translateY(-12px); 
+          opacity: 1;
+          background: rgba(255,255,255,0.9);
+        }
+      }
+
+      /* ── Text with blinking cursor ── */
+      .loader-text {
+        color: rgba(255,255,255,0.55);
+        font-family: 'Courier New', 'SF Mono', 'Consolas', monospace;
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        line-height: 1;
+      }
+      .loader-cursor {
+        display: inline-block;
+        margin-left: 2px;
+        color: rgba(255,255,255,0.85);
+        animation: cursor-blink 1s step-end infinite;
+      }
+      @keyframes cursor-blink {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0; }
+      }
+
+      /* ── Once custom font loads, switch to it smoothly ── */
+      body.fonts-loaded .loader-text,
+      body.fonts-loaded .loader-cursor {
+        font-family: 'Fusion Pixel', 'fusion-pixel-12px-monospaced', 'Courier New', monospace;
+        letter-spacing: 0.12em;
+      }
     </style>
-    <!-- Fonts preload with LOW priority — don't block main bundle -->
+
+    <!-- Preload fonts (low priority so they don't block the loader itself) -->
     <link rel="preload" as="font" type="font/woff2" href="%BASE_URL%fonts/fusion-pixel-12px-monospaced-latin.woff2" crossorigin fetchpriority="low" />
     <link rel="preload" as="font" type="font/woff2" href="%BASE_URL%fonts/fusion-pixel-12px-monospaced-zh-hans.woff2" crossorigin fetchpriority="low" />
+    <!-- Also declare as font-face so document.fonts.ready works -->
+    <style>
+      @font-face {
+        font-family: 'Fusion Pixel';
+        src: url('%BASE_URL%fonts/fusion-pixel-12px-monospaced-latin.woff2') format('woff2');
+        font-display: swap;
+      }
+    </style>
+
     <title>Portfolio</title>
   </head>
   <body>
-    <div class="inline-loader" id="inline-loader">SIVAN PORTFOLIO — LOADING</div>
+    <!-- Animated inline loader — visible immediately before any JS runs -->
+    <div class="inline-loader" id="inline-loader">
+      <div class="loader-dots">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+      </div>
+      <div class="loader-text">Sivan Portfolio<span class="loader-cursor">▌</span></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Hide inline loader once React mounts (failsafe 3s fallback)
-      window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-          const el = document.getElementById('inline-loader');
+      // When custom font finishes loading, apply it to the inline loader (smooth transition)
+      // This prevents the jarring "default font → pixel font" flash
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function() {
+          document.body.classList.add('fonts-loaded');
+        });
+      }
+      // Failsafe: hide inline loader once React mounts (or after 5s max)
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          var el = document.getElementById('inline-loader');
           if (el) el.classList.add('inline-loader--hidden');
-        }, 3000);
+        }, 5000);
       });
+      // Allow React to signal it's ready
+      window.__hideInlineLoader = function() {
+        var el = document.getElementById('inline-loader');
+        if (el) el.classList.add('inline-loader--hidden');
+      };
     </script>
   </body>
 </html>

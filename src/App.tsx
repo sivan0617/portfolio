@@ -1862,6 +1862,10 @@ function SequenceApp({
 
   useEffect(() => {
     document.body.classList.toggle("sequence-scroll-locked", showLoader);
+    // Hide the inline HTML loader once React takes over
+    if (!showLoader && window.__hideInlineLoader) {
+      window.__hideInlineLoader();
+    }
 
     return () => document.body.classList.remove("sequence-scroll-locked");
   }, [showLoader]);
