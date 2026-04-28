@@ -21,7 +21,6 @@
       };
 
       const siteBasePath = getSiteBasePath();
-      const preloadedPreviewAssets = new Set();
 
       const withSiteBase = (value) => {
         if (!value || !value.startsWith("/") || value.startsWith("//") || !siteBasePath) {
@@ -48,33 +47,6 @@
           if (currentSrc && normalizedSrc !== currentSrc) {
             node.setAttribute("src", normalizedSrc);
           }
-        });
-      };
-
-      const preloadPreviewAssets = (root = document) => {
-        const scope = root instanceof Element || root instanceof Document ? root : document;
-        const imageUrls = new Set();
-
-        scope.querySelectorAll?.(".dual-wave-wrapper .wave-column-left .animated-text[data-image]").forEach((node) => {
-          const imageUrl = node.getAttribute("data-image");
-          if (imageUrl) {
-            imageUrls.add(imageUrl);
-          }
-        });
-
-        scope.querySelectorAll?.(".dual-wave-wrapper .image-thumbnail").forEach((node) => {
-          const imageUrl = node.getAttribute("src");
-          if (imageUrl) {
-            imageUrls.add(imageUrl);
-          }
-        });
-
-        imageUrls.forEach((imageUrl) => {
-          if (!imageUrl || preloadedPreviewAssets.has(imageUrl)) return;
-          preloadedPreviewAssets.add(imageUrl);
-          const preloadImage = new Image();
-          preloadImage.decoding = "async";
-          preloadImage.src = imageUrl;
         });
       };
 
@@ -214,21 +186,18 @@
           return;
         }
         normalizePreviewAssets();
-        preloadPreviewAssets();
         bindOverrideHandlers();
 
         const observer = new MutationObserver((mutations) => {
           mutations.forEach((mutation) => {
             if (mutation.type === "attributes" && mutation.target instanceof HTMLElement) {
               normalizePreviewAssets(mutation.target);
-              preloadPreviewAssets(mutation.target);
               return;
             }
 
             mutation.addedNodes.forEach((node) => {
               if (node instanceof HTMLElement) {
                 normalizePreviewAssets(node);
-                preloadPreviewAssets(node);
               }
             });
           });
@@ -263,7 +232,7 @@
           <div class="image-thumbnail-wrapper">
             <div class="image-thumbnail-label image-thumbnail-title">礦-Kuang</div>
             <img
-              src="../../portfolio-web/kuang/礦品牌设计/封面.png.webp"
+              src="portfolio/kuang-folder-cover.jpg"
               alt="Selected portfolio work"
               class="image-thumbnail"
             />

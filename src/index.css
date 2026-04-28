@@ -27,18 +27,15 @@ html {
   scroll-behavior: smooth;
   font-family: var(--sequence-font);
   scrollbar-width: none;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  min-height: 100dvh;
   background: #000;
   font-family: var(--sequence-font);
   font-synthesis: none;
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 body::-webkit-scrollbar {
@@ -71,11 +68,11 @@ body.route-center-transitioning {
 }
 
 #root {
-  min-height: 100dvh;
+  min-height: 100vh;
 }
 
 .sequence {
-  min-height: 100dvh;
+  min-height: 100vh;
   background: #000;
   font-family: var(--sequence-font);
   font-synthesis: none;
@@ -440,13 +437,6 @@ body.route-center-transitioning .info-nav {
   opacity: 1;
   isolation: isolate;
   overflow: hidden;
-}
-
-/* Mobile: prevent loader from eating all touch events (iframe postMessage may not fire) */
-@media (max-width: 900px) {
-  .sequence__loader:not(.sequence__loader--ready):not(.sequence__loader--transitioning) {
-    pointer-events: none;
-  }
 }
 
 .sequence__loader--ready {
@@ -1012,7 +1002,7 @@ body.route-center-transitioning .info-nav {
 }
 
 .info-page {
-  min-height: 100dvh;
+  min-height: 100vh;
   background: #000;
   color: #fff;
   font-family: var(--sequence-font);
@@ -1090,7 +1080,7 @@ body.route-center-transitioning .info-nav {
 
 .info-page__section {
   display: flex;
-  min-height: 100dvh;
+  min-height: 100vh;
   width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
   flex-direction: column;
@@ -1126,7 +1116,7 @@ body.route-center-transitioning .info-nav {
 .info-page__about-visual {
   position: relative;
   width: 100%;
-  min-height: 100dvh;
+  min-height: 100vh;
   overflow: hidden;
   background: transparent;
 }
@@ -1469,7 +1459,7 @@ body.route-center-transitioning .info-nav {
   z-index: 3;
   display: block;
   width: 100vw;
-  height: 100dvh;
+  height: 100vh;
   pointer-events: none;
 }
 
@@ -1759,7 +1749,7 @@ a .contact-index__scramble {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 760px) {
   .info-page--about {
     --about-frame-left: 1rem;
     --about-frame-right: 1rem;
@@ -1909,7 +1899,10 @@ a .contact-index__scramble {
     font-size: 0.68rem;
   }
 
-  /* MacBook scale handled by Tailwind responsive classes on the component root */
+  .sequence__macbook > div > div {
+    scale: 0.48 !important;
+    translate: 0 -5rem;
+  }
 
   .sequence__works-meta {
     left: auto;
@@ -2037,7 +2030,7 @@ body.rxk-case-locked {
 }
 
 .rxk-transition-blank {
-  min-height: 100dvh;
+  min-height: 100vh;
   background: #171717;
 }
 
@@ -2045,7 +2038,7 @@ body.rxk-case-locked {
   --rxk-bg: #11110f;
   --rxk-fg: #f4f3ed;
   --rxk-gap: clamp(1rem, 1.55vw, 1.75rem);
-  min-height: 100dvh;
+  min-height: 100vh;
   overflow: hidden;
   background: var(--rxk-bg);
   color: var(--rxk-fg);
@@ -2089,15 +2082,14 @@ body.rxk-case-locked {
 .rxk-detail-page__stage {
   display: flex;
   justify-content: space-between;
-  min-height: 100dvh;
-  height: auto;
+  height: 100vh;
   padding-inline: var(--rxk-gap);
   overflow: hidden;
 }
 
 .rxk-detail-page__left {
   width: calc((100vw - var(--rxk-gap) * 2 - var(--rxk-gap) * 11) / 12 * 6 + var(--rxk-gap) * 5);
-  min-height: 100dvh;
+  height: 100vh;
   overflow: hidden;
 }
 
@@ -2131,24 +2123,14 @@ body.rxk-case-locked {
   position: relative;
 }
 
-.rxk-detail-page__published-video {
-  position: relative;
-}
-
 .rxk-detail-page__published-player {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   border: 0;
-  background: transparent;
+  background: #000;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.rxk-detail-page__published-player--ready {
-  opacity: 1;
 }
 
 .rxk-detail-page__media img,
@@ -2369,8 +2351,7 @@ body.rxk-case-locked {
   .rxk-detail-page {
     --rxk-gap: clamp(1rem, 4.2vw, 1.35rem);
     min-height: 100svh;
-    /* overflow: hidden — JS transform drives scrolling; auto would fight native browser scroll */
-    overflow: hidden;
+    overflow: auto;
   }
 
   .rxk-detail-page::before {
@@ -2384,8 +2365,7 @@ body.rxk-case-locked {
     flex-direction: column;
     justify-content: flex-start;
     padding: 5.4rem var(--rxk-gap) 0;
-    /* overflow: hidden — must clip the JS-transformed track */
-    touch-action: pan-y;
+    overflow: visible;
   }
 
   .rxk-detail-page__right {
@@ -2470,7 +2450,7 @@ body.rxk-case-locked {
     width: 100%;
     height: auto;
     margin: clamp(2.2rem, 7vh, 4rem) 0 0;
-    /* overflow: hidden — clip the transformed track to the left column */
+    overflow: visible;
   }
 
   .rxk-detail-page__track {
@@ -2478,7 +2458,7 @@ body.rxk-case-locked {
     grid-template-columns: 1fr;
     gap: clamp(0.9rem, 3.5vw, 1.2rem);
     padding: 0;
-    /* transform driven by --rxk-y JS variable (same as desktop) */
+    transform: none;
   }
 
   .rxk-detail-page__media {

@@ -1023,7 +1023,6 @@ function RxkCasePrototype({
   const lastTickRef = useRef<number | null>(null);
   const frameRef = useRef<number | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const detailScrollTouchRef = useRef<{ active: boolean; lastY: number }>({ active: false, lastY: 0 });
   const [hoverPreviewEnabled, setHoverPreviewEnabled] = useState(canUseHoverPreview);
   const [hoveredPublishedVideo, setHoveredPublishedVideo] = useState<string | null>(null);
   const activeProject = localizeRxkProject(
@@ -1245,8 +1244,9 @@ function RxkCasePrototype({
     window.history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
 
-    // NOTE: Removed mobile early-return — render loop + touch scroll must run on all viewports
-    // Previously: if (window.matchMedia("(max-width: 900px)").matches) { return; }
+    if (window.matchMedia("(max-width: 900px)").matches) {
+      return;
+    }
 
     const normalizeLoopOffset = (value: number, cycle = cycleHeightRef.current) => {
       if (!Number.isFinite(value) || cycle <= 0) return 0;
@@ -1323,39 +1323,6 @@ function RxkCasePrototype({
     window.addEventListener("resize", measure);
     window.addEventListener("wheel", onWheel, { passive: false, capture: true });
 
-    // Touch scroll support for mobile detail page
-    const isMobileDetail = window.matchMedia("(max-width: 900px)").matches;
-    const stageEl = stageRef.current;
-    const onTouchStart = (event: globalThis.TouchEvent) => {
-      if (event.touches.length !== 1) return;
-      const target = event.target as HTMLElement;
-      if (target.closest("a, button, input, textarea, select, audio, video")) return;
-      detailScrollTouchRef.current = { active: true, lastY: event.touches[0].clientY };
-    };
-    const onTouchMove = (event: globalThis.TouchEvent) => {
-      if (!detailScrollTouchRef.current.active || event.touches.length !== 1) return;
-      const y = event.touches[0].clientY;
-      const deltaY = (detailScrollTouchRef.current.lastY - y) * 1.35;
-      if (Math.abs(deltaY) < 0.6) return;
-      detailScrollTouchRef.current.lastY = y;
-      event.preventDefault();
-      targetOffsetRef.current += deltaY;
-      targetStretchRef.current = Math.max(
-        targetStretchRef.current,
-        1 + Math.min(0.18, Math.abs(deltaY) / 2200),
-      );
-      foldLoopState();
-    };
-    const onTouchEnd = () => {
-      detailScrollTouchRef.current.active = false;
-    };
-
-    if (isMobileDetail && stageEl) {
-      stageEl.addEventListener("touchstart", onTouchStart, { passive: true });
-      stageEl.addEventListener("touchmove", onTouchMove, { passive: false });
-      stageEl.addEventListener("touchend", onTouchEnd, { passive: true });
-    }
-
     return () => {
       if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
       resizeObserver?.disconnect();
@@ -1365,11 +1332,6 @@ function RxkCasePrototype({
       });
       window.removeEventListener("resize", measure);
       window.removeEventListener("wheel", onWheel, { capture: true });
-      if (isMobileDetail && stageEl) {
-        stageEl.removeEventListener("touchstart", onTouchStart);
-        stageEl.removeEventListener("touchmove", onTouchMove);
-        stageEl.removeEventListener("touchend", onTouchEnd);
-      }
     };
   }, [activeProject.slug, cycleSize, detailOpen]);
 
@@ -1486,11 +1448,6 @@ function RxkCasePrototype({
                         src={`${getPublishedPortfolioVideo(item.src)?.embedUrl}&autoplay=1&muted=1&danmaku=0`}
                         loading="lazy"
                         allow="autoplay; fullscreen; picture-in-picture"
-                        onLoad={(e) => {
-                          (e.currentTarget as HTMLIFrameElement).classList.add(
-                            "rxk-detail-page__published-player--ready",
-                          );
-                        }}
                       />
                     ) : null}
                     <a
@@ -1811,15 +1768,6 @@ function SequenceApp({
       return () => window.clearTimeout(timer);
     }
   }, [homeAnimationReady, loaderFrameReady]);
-
-  // Fallback: force loader ready after 3s on mobile where iframe postMessage may not fire
-  useEffect(() => {
-    if (loaderReady || !showLoader) return;
-    const isMobile = window.matchMedia("(max-width: 900px)").matches;
-    if (!isMobile) return;
-    const fallback = window.setTimeout(() => setLoaderReady(true), 3000);
-    return () => window.clearTimeout(fallback);
-  }, [showLoader, loaderReady]);
 
   useEffect(() => {
     if (!showLoader) return;
