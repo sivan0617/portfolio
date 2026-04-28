@@ -10,6 +10,7 @@ const logoEl = document.querySelector('.logo__title');
 const progressLockup = document.querySelector('.progress-lockup');
 const progressBar = document.querySelector('.progress__bar');
 const loaderStatusEl = document.querySelector('[data-loader-status]');
+const percentEl = document.querySelector('[data-loader-percent]');
 const logoText = logoEl.textContent;
 const params = new URLSearchParams(window.location.search);
 const isSequenceLoader = params.get('sequence') === '1';
@@ -135,9 +136,11 @@ function updateAutoScroll() {
 }
 
 function renderProgressBar(progress) {
-  gsap.set(progressBar, {
-    scaleX: Math.min(1, Math.max(0, Number(progress) || 0)),
-  });
+  const p = Math.min(1, Math.max(0, Number(progress) || 0));
+  gsap.set(progressBar, { scaleX: p });
+  if (percentEl) {
+    percentEl.textContent = Math.round(p * 100) + '%';
+  }
 }
 
 function initProgressBar() {
@@ -149,9 +152,9 @@ function initProgressBar() {
   if (isSequenceLoader) {
     loaderState.progress = 0;
     progressTween = gsap.to(loaderState, {
-      progress: 0.86,
-      duration: 8,
-      ease: 'power2.out',
+      progress: 0.75,
+      duration: 18,
+      ease: 'power1.inOut',
       onUpdate: () => renderProgressBar(loaderState.progress),
     });
     return;
@@ -179,6 +182,9 @@ function setProgressBar(progress, duration = 0.35) {
 function completeProgressBar() {
   progressTween?.kill();
   setProgressBar(1, 0.55);
+  if (percentEl) {
+    percentEl.textContent = '100%';
+  }
 }
 
 function syncProgressWidth() {
@@ -259,6 +265,10 @@ window.addEventListener('message', (event) => {
 
   if (type === 'sequence:loaderComplete') {
     completeProgressBar();
+    if (loaderStatusEl) {
+      loaderStatusEl.textContent = '✓ 加载完成 · 点击进入';
+      loaderStatusEl.style.color = 'rgba(255,255,255,0.9)';
+    }
   }
 });
 

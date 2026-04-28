@@ -145,12 +145,13 @@ const kineticTransitionLines = [
 ];
 
 const loaderStatusMessages = [
-  "视觉档案初始化中",
-  "正在读取海报与影像项目……",
-  "正在挂载品牌视觉素材……",
-  "正在同步作品索引……",
-  "正在整理个人资料……",
-  "档案已就绪",
+  "初始化系统…",
+  "加载作品数据…",
+  "预览资源缓冲中…",
+  "渲染交互引擎…",
+  "校准动画参数…",
+  "同步作品索引…",
+  "准备就绪…",
 ];
 const aboutTextWallLabels = {
   zh: [
@@ -1755,7 +1756,11 @@ function SequenceApp({
   }, [onWorkDetailRequest]);
 
   useEffect(() => {
-    const progress = homeAnimationReady ? 1 : loaderFrameReady ? 0.58 : 0.12;
+    const progress = homeAnimationReady
+      ? 1
+      : loaderFrameReady
+        ? Math.max(0.28 + loaderStatusIndex * 0.08, 0.35) // scales with status step
+        : 0.08;
 
     postToFrame(
       loaderFrameRef.current,
@@ -1767,6 +1772,23 @@ function SequenceApp({
       getFrameTargetOrigin(),
     );
   }, [homeAnimationReady, loaderFrameReady, loaderStatusIndex]);
+
+  // Preload ALL project images during loader phase so they're cached before entry
+  useEffect(() => {
+    if (!loaderFrameReady || !showLoader) return;
+    const loaded = new Set<string>();
+    rxkProjects.forEach((project) => {
+      const media = getRapidLayerMedia(project.slug, locale);
+      media.forEach((m) => {
+        const url = m.type === "image" ? m.src : m.poster;
+        if (url && !loaded.has(url)) {
+          loaded.add(url);
+          const img = new Image();
+          img.src = url; // fire-and-forget: browser caches on load
+        }
+      });
+    });
+  }, [loaderFrameReady, showLoader, locale]);
 
   useEffect(() => {
     if (homeAnimationReady && loaderFrameReady) {
@@ -1788,10 +1810,11 @@ function SequenceApp({
 
     if (!loaderFrameReady) return;
 
-    const timers = [2, 3, 4].map((nextIndex, order) =>
+    // Stagger status messages over ~12s (2s each step) to match the extended progress bar
+    const timers = [2, 3, 4, 5].map((nextIndex, order) =>
       window.setTimeout(() => {
         setLoaderStatusIndex((currentIndex) => Math.max(currentIndex, nextIndex));
-      }, 1400 * (order + 1)),
+      }, 2200 * (order + 1)),
     );
 
     return () => timers.forEach((timer) => window.clearTimeout(timer));
