@@ -1,4 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#000"/>
-  <text x="16" y="23" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="20" fill="#fff">S</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <rect width="32" height="32" fill="#000"/>
+  <!-- 像素风 S (6x8 grid, 2px per pixel, centered at 32x32) -->
+  <!-- offset: x=10, y=5, each cell=2px -->
+  
+  <!-- .####. -->
+  <rect x="10" y="5" width="10" height="2" fill="#e0e0e0"/>
+  
+  <!-- ##.... -->
+  <rect x="10" y="7" width="4" height="2" fill="#e0e0e0"/>
+  
+  <!-- #..... -->
+  <rect x="10" y="9" width="2" height="2" fill="#e0e0e0"/>
+  
+  <!-- .#### -->
+  <rect x="12" y="11" width="8" height="2" fill="#e0e0e0"/>
+  
+  <!-- .....# -->
+  <rect x="18" y="13" width="2" height="2" fill="#e0e0e0"/>
+  
+  <!-- ....## -->
+  <rect x="16" y="15" width="4" height="2" fill="#e0e0e0"/>
+  
+  <!-- ##...# -->
+  <rect x="10" y="17" width="4" height="2" fill="#e0e0e0"/>
+  <rect x="18" y="17" width="2" height="2" fill="#e0e0e0"/>
+  
+  <!-- .####. -->
+  <rect x="10" y="19" width="10" height="2" fill="#e0e0e0"/>
 </svg>
