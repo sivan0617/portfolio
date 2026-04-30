@@ -1227,6 +1227,34 @@ function RxkCasePrototype({
     setHoveredPublishedVideo(null);
   }, [activeProject.slug]);
 
+  // Prefetch images to avoid blank gaps when scrolling on mobile
+  const isMobilePrefetch =
+    typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches;
+  useEffect(() => {
+    if (!isMobilePrefetch || imageSources.length <= 2) return;
+
+    // Eagerly preload images that are marked lazy — browser cache will serve them instantly
+    const prefetchCount = Math.min(imageSources.length, 12);
+    for (let i = 2; i < prefetchCount; i++) {
+      const img = new Image();
+      img.src = toPublicAssetUrl(imageSources[i]);
+    }
+    // Queue the rest at lower priority (after paint)
+    if (imageSources.length > 12) {
+      requestIdleCallback?.(() => {
+        for (let i = 12; i < imageSources.length; i++) {
+          const img = new Image();
+          img.src = toPublicAssetUrl(imageSources[i]);
+        }
+      }) ?? setTimeout(() => {
+        for (let i = 12; i < imageSources.length; i++) {
+          const img = new Image();
+          img.src = toPublicAssetUrl(imageSources[i]);
+        }
+      }, 500);
+    }
+  }, [isMobilePrefetch, activeProject.slug]);
+
   useEffect(() => {
     if (!detailOpen) {
       targetOffsetRef.current = 0;
