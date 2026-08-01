@@ -377,3 +377,113 @@ export const PROJECT_ASSET_LIBRARY: Record<string, ProjectAssetBundle> = {
   },
 
 };
+
+PROJECT_ASSET_LIBRARY["fashion-color-body"] = {
+  image: [
+    "/portfolio/fashion-studies/色彩与身体/01_草地薄荷洋红.png",
+    "/portfolio/fashion-studies/色彩与身体/02_灰毯珊瑚芥黄.png",
+    "/portfolio/fashion-studies/色彩与身体/03_蓝毯淡紫红手套.png",
+    "/portfolio/fashion-studies/色彩与身体/04_紫毯橙裙修正版.png",
+    "/portfolio/fashion-studies/色彩与身体/05_草地灰蓝酒红.png",
+    "/portfolio/fashion-studies/色彩与身体/06_灰毯荧光黄外套.png",
+    "/portfolio/fashion-studies/色彩与身体/07_红衫橄榄手套.png",
+    "/portfolio/fashion-studies/色彩与身体/08_红黑结构坐姿.png",
+    "/portfolio/fashion-studies/色彩与身体/09_青蓝酒红手袋.png",
+    "/portfolio/fashion-studies/色彩与身体/10_贴地斜线闪光.png",
+    "/portfolio/fashion-studies/色彩与身体/11_俯拍色块关系.png",
+  ],
+  video: [],
+};
+
+PROJECT_ASSET_LIBRARY["fashion-character-scene"] = {
+  image: [
+    "/portfolio/fashion-studies/角色与场景/01_糖果店黑色剪影.png",
+    "/portfolio/fashion-studies/角色与场景/02_灰色舞台三人.png",
+    "/portfolio/fashion-studies/角色与场景/03_蓝底情绪肖像.png",
+    "/portfolio/fashion-studies/角色与场景/04_低机位双人关系.png",
+    "/portfolio/fashion-studies/角色与场景/05_花市双人压缩关系.png",
+    "/portfolio/fashion-studies/角色与场景/06_后台蜜桃袖弧线.png",
+    "/portfolio/fashion-studies/角色与场景/07_博物馆电梯双人.png",
+    "/portfolio/fashion-studies/角色与场景/08_软皮手袋群像.png",
+    "/portfolio/fashion-studies/角色与场景/09_铜发蓝场肖像.png",
+    "/portfolio/fashion-studies/角色与场景/10_灰幕三态.png",
+    "/portfolio/fashion-studies/角色与场景/11_后台缺席的反射.png",
+    "/portfolio/fashion-studies/角色与场景/12_档案室双层角色.png",
+    "/portfolio/fashion-studies/角色与场景/13_织物修复室双人.png",
+    "/portfolio/fashion-studies/角色与场景/14_琥珀材料四手.png",
+    "/portfolio/fashion-studies/角色与场景/15_歌剧院三联角色.png",
+    "/portfolio/fashion-studies/角色与场景/16_黄色风褶近脸.png",
+  ],
+  video: [],
+};
+
+PROJECT_ASSET_LIBRARY["fashion-minimal-geometry"] = {
+  image: [
+    "/portfolio/fashion-studies/极简与几何/01_黑帽酸黄侧脸.png",
+    "/portfolio/fashion-studies/极简与几何/02_木条黑白裁切.png",
+    "/portfolio/fashion-studies/极简与几何/03_淡紫白圆关系.png",
+    "/portfolio/fashion-studies/极简与几何/04_酸黄侧脸硬边.png",
+    "/portfolio/fashion-studies/极简与几何/05_钴蓝杏色三平面.png",
+    "/portfolio/fashion-studies/极简与几何/06_陶土横条植物纹.png",
+    "/portfolio/fashion-studies/极简与几何/07_薄荷褶皱白色曲面.png",
+    "/portfolio/fashion-studies/极简与几何/08_朱红盐湖大留白.png",
+    "/portfolio/fashion-studies/极简与几何/09_钴蓝袜奶油穆勒鞋.png",
+    "/portfolio/fashion-studies/极简与几何/10_锈红兜帽青色平面.png",
+    "/portfolio/fashion-studies/极简与几何/11_钴蓝人物石灰场.png",
+    "/portfolio/fashion-studies/极简与几何/12_俯视人物朱红光圈.png",
+    "/portfolio/fashion-studies/极简与几何/13_红色人物金属网格.png",
+    "/portfolio/fashion-studies/极简与几何/14_蓝色平面侧脸.png",
+    "/portfolio/fashion-studies/极简与几何/15_雾中草场绿色人物.png",
+    "/portfolio/fashion-studies/极简与几何/16_乳白玻璃人物切片.png",
+  ],
+  video: [],
+};
+
+const mergeProjectAssetBundles = (slugs: string[]): ProjectAssetBundle => {
+  const bundles = slugs
+    .map((slug) => PROJECT_ASSET_LIBRARY[slug])
+    .filter((bundle): bundle is ProjectAssetBundle => Boolean(bundle));
+
+  return {
+    image: bundles.flatMap((bundle) => bundle.image),
+    video: bundles.flatMap((bundle) => bundle.video),
+    audio: bundles.flatMap((bundle) => bundle.audio ?? []),
+    document: bundles.flatMap((bundle) => bundle.document ?? []),
+  };
+};
+
+PROJECT_ASSET_LIBRARY["campaign-films"] = mergeProjectAssetBundles([
+  "mthayas-film",
+  "redtail-intercept",
+]);
+
+PROJECT_ASSET_LIBRARY["poster-archive"] = mergeProjectAssetBundles([
+  "poster-pixel-exhibition",
+  "poster-other-series",
+  "poster-organ-show",
+  "poster-experimental-series",
+  "poster-fresh",
+  "poster-art-hand",
+  "poster-solar",
+  "poster-misc",
+]);
+
+PROJECT_ASSET_LIBRARY["experimental-films"] = mergeProjectAssetBundles([
+  "experimental-dimensional",
+  "experimental-fantasy",
+  "experimental-mood",
+  "experimental-misc",
+]);
+
+const videoArchiveBundles = [
+  PROJECT_ASSET_LIBRARY["kuang-brand"],
+  PROJECT_ASSET_LIBRARY["campaign-films"],
+  PROJECT_ASSET_LIBRARY["experimental-films"],
+].filter((bundle): bundle is ProjectAssetBundle => Boolean(bundle));
+
+PROJECT_ASSET_LIBRARY["video-archive"] = {
+  image: [],
+  video: Array.from(new Set(videoArchiveBundles.flatMap((bundle) => bundle.video))),
+  audio: Array.from(new Set(videoArchiveBundles.flatMap((bundle) => bundle.audio ?? []))),
+  document: Array.from(new Set(videoArchiveBundles.flatMap((bundle) => bundle.document ?? []))),
+};

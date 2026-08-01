@@ -35,8 +35,9 @@ const copy = {
         portfolioIntro.about,
       ],
       strengths: [
-        ["方向", portfolioIntro.disciplines.join(" / ")],
-        ["近期关注", portfolioIntro.focus.join(" / ")],
+        ["擅长", "品牌定位梳理 / 广告创意提案 / 脚本策划 / 分镜与关键帧设计 / 人物及产品视觉开发"],
+        ["核心能力", "商业拍摄执行 / AI 图像与视频制作 / 人物与产品一致性控制 / 后期把控与成片交付"],
+        ["创作优势", "将模糊需求整理为清晰、统一、可延展且能够落地的品牌影像体系"],
       ],
       disciplines: "方向",
       focus: "近期关注",
@@ -45,9 +46,11 @@ const copy = {
       resume: [
         ["姓名", "姚茜文 / Sivan"],
         ["身份", "AIGC 视觉设计师 / 品牌视觉设计师 / 图像方向 / 视觉系统 / 概念影像"],
-        ["所在地", "重庆 / GMT+8"],
-        ["工作轨迹", "江西 / 成都 / 重庆 / 上海 / 湖北"],
-        ["领域", "品牌视觉系统 / 短片概念 / UI 系统 / AIGC 视觉实验"],
+        ["工作轨迹", "江西 / 成都 / 重庆 / 上海"],
+        ["领域", "品牌视觉系统 / 短片概念 / UI 系统 / 商业影像 / AIGC 视觉实验"],
+        ["主导项目 01", "素元氏｜功效护肤品牌宣传：品牌调性、创意提案、脚本分镜、人物与产品视觉、动态影像全流程统筹"],
+        ["主导项目 02", "如水无争｜克东天然苏打水：品牌视觉方向、TVC、产品与人物广告、信息流短视频及成片交付"],
+        ["参与经历", "重庆两江公交宣传动画 / 永川影视基地艺术家宣传 / 问界汽车宣传片等多个项目"],
       ],
     },
     contact: {
@@ -71,24 +74,27 @@ const copy = {
     about: {
       eyebrow: "ABOUT / INDEX",
       title: "About",
-      role: "AIGC Visual Designer / Brand Visual Designer",
+      role: "AIGC Visual Designer / Brand Visual Designer / Commercial Image-maker",
       philosophy: [
-        "I work between emotional image-making and clear visual systems. Images, motion, typography, and interfaces are not separate materials to me; they should eventually become a language that can be remembered, extended, and reused.",
+        "I am drawn to emotional images and clear visual systems. Images, motion, typography, and interfaces are not separate materials to me; together they become a language that can be remembered and extended. My practice now moves from brand visuals into commercial and AI filmmaking, spanning concepts, scripts, storyboards, visual development, production, and final delivery.",
       ],
       strengths: [
-        ["Direction", "Brand Visual Systems / Short-Film Concepts / UI Visual Systems"],
-        ["Current Focus", "AIGC + Brand Visuals / High-Texture Commercial Images / Cold Digital Aesthetics"],
+        ["Specialties", "Brand Positioning / Advertising Concepts / Scripts / Storyboards & Keyframes / Character & Product Visual Development"],
+        ["Core Skills", "Commercial Production / AI Image & Video / Character & Product Consistency / Post-production & Final Delivery"],
+        ["Strength", "Turning ambiguous needs into clear, cohesive, extensible, and production-ready brand film systems"],
       ],
       disciplines: "Fields",
       focus: "Current Focus",
-      disciplinesItems: ["Brand Visual Systems", "Short-Film Concepts", "UI Visual Design"],
-      focusItems: ["AIGC + Brand Visuals", "High-Texture Commercial Images", "Cold Digital Aesthetics"],
+      disciplinesItems: ["Brand Visual Systems", "Short-Film Concepts", "UI Visual Design", "Commercial & AI Filmmaking"],
+      focusItems: ["Digital & Forward-Looking Expression", "Advertising & Film Collaborations", "Brand Visuals & Content"],
       resume: [
         ["Name", "Yaoxiwen / Sivan"],
         ["Role", "AIGC Visual Designer / Brand Visual Designer / Image Direction / Visual Systems / Concept Moving Image"],
-        ["Base", "Chongqing / GMT+8"],
-        ["Work Trace", "Jiangxi / Chengdu / Chongqing / Shanghai / Hubei"],
-        ["Fields", "Brand Visual Systems / Short-Film Concepts / UI Systems / AIGC Visual Experiments"],
+        ["Work Trace", "Jiangxi / Chengdu / Chongqing / Shanghai"],
+        ["Fields", "Brand Visual Systems / Short-Film Concepts / UI Systems / Commercial Film / AIGC Visual Experiments"],
+        ["Lead Project 01", "Suyuanshi Skincare: brand tone, concepts, scripts, storyboards, character and product visuals, and moving-image production"],
+        ["Lead Project 02", "RUSHUIWUZHENG Soda Water: brand direction, TVC, product and character advertising, short-form content, and final delivery"],
+        ["Project Experience", "Chongqing Liangjiang Bus Animation / Yongchuan Film Base Artist Campaign / AITO Promotional Film, among other projects"],
       ],
     },
     contact: {
@@ -450,7 +456,7 @@ function AboutPage({ locale }: { locale: Locale }) {
           <ScrambleText text={locale === "zh" ? "四川农业大学 / 视觉传达设计" : "Sichuan Agricultural University / Visual Communication Design"} />
         </p>
         <p>
-          <ScrambleText text={locale === "zh" ? "重庆 / GMT+8" : "Chongqing / GMT+8"} />
+          <ScrambleText text={locale === "zh" ? "视觉创意 / 商业影像 / 品牌叙事" : "Visual Creativity / Commercial Film / Brand Storytelling"} />
         </p>
         <a href={`mailto:${portfolioIntro.contact.email}`}>
           <ScrambleText text={locale === "zh" ? "发送邮件" : "Send An Email"} />

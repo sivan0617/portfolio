@@ -12,6 +12,12 @@ import {
   resolvePortfolioExtraAsset,
 } from "./data/publishedMedia";
 
+declare global {
+  interface Window {
+    __hideInlineLoader?: () => void;
+  }
+}
+
 const FRAME_PATHS = {
   loader: toPublicAssetUrl("/vendor/loader/index.html"),
   dualWave: toPublicAssetUrl("/vendor/dual-wave/index.html"),
@@ -303,7 +309,7 @@ const prewarmAboutAssets = () => {
     if (document.head.querySelector(`link[data-about-prewarm="${href}"]`)) return;
 
     const link = document.createElement("link");
-    link.rel = "preload";
+    link.rel = "prefetch";
     link.href = href;
     link.as = as;
     link.dataset.aboutPrewarm = href;
@@ -367,8 +373,6 @@ const detailCopy = {
     info: "信息",
     role: "职责",
     roles: ["概念", "美术指导", "AIGC 视觉", "动态影像"],
-    awards: "奖项",
-    none: "暂无",
     type: "类型",
     year: "年份",
     extras: "附件",
@@ -383,8 +387,6 @@ const detailCopy = {
     info: "Info",
     role: "Role",
     roles: ["Concept", "Art Direction", "AIGC Visual", "Motion"],
-    awards: "Awards",
-    none: "N/A",
     type: "Type",
     year: "Year",
     extras: "Extras",
@@ -450,7 +452,7 @@ const getRapidLayerMedia = (slug: string, locale: Locale) => {
   const rawImageSources = hasFolderAssets
     ? uniquePaths([project.image, ...(assetBundle?.image ?? [])])
     : uniquePaths([project.image, ...project.gallery]);
-  const derivedPosterSources = new Set(publishedVideos.map(getDerivedVideoPosterSource));
+  const derivedPosterSources = new Set((assetBundle?.video ?? []).map(getDerivedVideoPosterSource));
   const imageSources = rawImageSources
     .filter((src, index) => index === 0 || !derivedPosterSources.has(src))
     .map(getPortfolioWebImagePath);
@@ -585,7 +587,7 @@ function RapidLayersTransition({
   );
 }
 
-const rxkProjects: RxkProject[] = [
+const rxkProjectArchive: RxkProject[] = [
   {
     slug: "kuang-brand",
     title: "品牌设计：礦-Kuang",
@@ -976,6 +978,153 @@ const rxkProjects: RxkProject[] = [
   },
 ];
 
+const getArchivedProject = (slug: string) => {
+  const project = rxkProjectArchive.find((item) => item.slug === slug);
+  if (!project) {
+    throw new Error(`Missing archived project: ${slug}`);
+  }
+  return project;
+};
+
+const rxkProjects: RxkProject[] = [
+  getArchivedProject("kuang-brand"),
+  {
+    slug: "fashion-color-body",
+    title: "时尚视觉 / 色彩与身体",
+    titleEn: "Fashion Visuals / Color & Body",
+    shortTitle: "色彩与身体",
+    shortTitleEn: "Color & Body",
+    category: "视觉研究 / 色彩",
+    categoryEn: "Visual Study / Color",
+    year: "2026",
+    description: "以身体为构图轴心，通过低机位、俯拍与贴地姿态压缩空间。薄荷绿、洋红和酒红等色块在服装轮廓间彼此牵引，让色彩成为动作、重量与情绪的一部分。",
+    descriptionEn:
+      "A body-led fashion study using low angles, overhead views, and grounded poses to compress space. Mint, magenta, and burgundy move across garment silhouettes, turning color into gesture, weight, and mood.",
+    image: "/portfolio/fashion-studies/色彩与身体/01_草地薄荷洋红.png",
+    gallery: [
+      "/portfolio/fashion-studies/色彩与身体/01_草地薄荷洋红.png",
+    ],
+  },
+  {
+    slug: "fashion-character-scene",
+    title: "时尚视觉 / 角色与场景",
+    titleEn: "Fashion Visuals / Character & Scene",
+    shortTitle: "角色与场景",
+    shortTitleEn: "Character & Scene",
+    category: "视觉研究 / 叙事",
+    categoryEn: "Visual Study / Narrative",
+    year: "2026",
+    description: "将人物置于糖果店、博物馆、后台与材料工作室等具体空间，以视线、距离和道具建立未完成的情节。服装既塑造角色身份，也成为推动人物关系与场景张力的线索。",
+    descriptionEn:
+      "Figures inhabit candy stores, museums, backstage rooms, and material workshops, where gaze, distance, and objects suggest unfinished stories. Clothing shapes each character while driving the tension within the scene.",
+    image: "/portfolio/fashion-studies/角色与场景/01_糖果店黑色剪影.png",
+    gallery: [
+      "/portfolio/fashion-studies/角色与场景/01_糖果店黑色剪影.png",
+    ],
+  },
+  {
+    slug: "fashion-minimal-geometry",
+    title: "时尚视觉 / 极简与几何",
+    titleEn: "Fashion Visuals / Minimal & Geometry",
+    shortTitle: "极简与几何",
+    shortTitleEn: "Minimal & Geometry",
+    category: "视觉研究 / 构成",
+    categoryEn: "Visual Study / Composition",
+    year: "2026",
+    description: "以大面积留白、规则网格、孤立色块与超尺度前景重新安排人物比例。在克制的空间秩序中保留一处高纯度颜色，呈现身体进入几何结构后的疏离、静止与轻微失衡。",
+    descriptionEn:
+      "Negative space, repeated grids, isolated color fields, and oversized foreground forms reset the scale of the figure. A single vivid hue disrupts the restrained order, creating distance, stillness, and subtle imbalance.",
+    image: "/portfolio/fashion-studies/极简与几何/01_黑帽酸黄侧脸.png",
+    gallery: [
+      "/portfolio/fashion-studies/极简与几何/01_黑帽酸黄侧脸.png",
+    ],
+  },
+  {
+    slug: "video-archive",
+    title: "视频作品集 / 动态影像",
+    titleEn: "Video Portfolio / Moving Image",
+    shortTitle: "视频作品集",
+    shortTitleEn: "Video Portfolio",
+    category: "动态影像",
+    categoryEn: "Moving Image",
+    year: "2026",
+    description: "独立收录品牌宣发、服饰影像、广告概念与实验短片；本作品集只展示视频，不与图片作品混排。",
+    descriptionEn:
+      "A dedicated video portfolio for brand campaigns, fashion films, advertising concepts, and experimental motion, kept separate from image work.",
+    image: "/portfolio/mthayas/1.1首帧图.png",
+    clips: [
+      {
+        title: "礦 / 饰品宣发片",
+        titleEn: "KUANG / Jewelry Campaign",
+        video: "/portfolio/kuang/礦-饰品宣发片/成片3版.mp4",
+        poster: "/portfolio/kuang/礦-饰品宣发片/成片3版.mp4.png",
+      },
+      {
+        title: "藏 x 水晶 / 成片",
+        titleEn: "Tibetan x Crystal / Final Film",
+        video: "/portfolio/mthayas/成片.mp4",
+        poster: "/portfolio/mthayas/1.1首帧图.png",
+      },
+      {
+        title: "绝对拦截 / 站内版",
+        titleEn: "Absolute Interception / Web Cut",
+        video: "/portfolio/redtail/参考图/Video 3.mp4",
+        poster: "/portfolio/redtail/参考图/IMG_0192.jpg",
+      },
+      {
+        title: "次元壁 / 手绘信件",
+        titleEn: "Dimensional Wall / Letter Scene",
+        video: "/portfolio/experimental/次元壁/手绘风格女孩读信视频生成_cleaned.mp4",
+        poster: "/portfolio/experimental/次元壁/cover.png",
+      },
+      {
+        title: "异世界 / 骑行断面",
+        titleEn: "Other World / Ride Fragment",
+        video: "/portfolio/experimental/异世界/Motorcycle_crashes_into_202604261650_cleaned.mp4",
+        poster: "/portfolio/experimental/异世界/cover.png",
+      },
+      {
+        title: "情绪 / 丁达尔效应",
+        titleEn: "Mood / Tyndall Effect",
+        video: "/portfolio/experimental/情绪/视频生成：翻书的丁达尔效应_cleaned.mp4",
+        poster: "/portfolio/experimental/情绪/cover.png",
+      },
+      {
+        title: "数字消解片段",
+        titleEn: "Digital Disintegration",
+        video: "/portfolio/experimental/杂/Man_vanishing_into_202604202143_cleaned.MP4",
+        poster: "/portfolio/experimental/杂/cover.png",
+      },
+    ],
+    gallery: [],
+  },
+  {
+    slug: "poster-archive",
+    title: "平面与海报 / 视觉实验合集",
+    titleEn: "Graphic & Poster / Visual Studies",
+    shortTitle: "平面与海报",
+    shortTitleEn: "Graphic & Poster",
+    category: "视觉实验合集",
+    categoryEn: "Visual Studies",
+    year: "2025",
+    description: "将像素、器官、故障、清新商业、节气与排版实验合并为完整的平面视觉档案。",
+    descriptionEn:
+      "A consolidated graphic archive spanning pixel, anatomical, glitch, commercial, seasonal, and typographic studies.",
+    image: "/portfolio/posters/像素展览/ChatGPT Image 2026年4月26日 12_20_13.png",
+    gallery: [
+      "/portfolio/posters/像素展览/ChatGPT Image 2026年4月26日 12_20_13.png",
+      "/portfolio/posters/其他/Image 2.png",
+      "/portfolio/posters/器官展/ChatGPT Image 2026年4月26日 12_34_47.png",
+      "/portfolio/posters/实验海报/Image 1_副本.png",
+      "/portfolio/posters/清鲜/ChatGPT Image 2026年4月26日 12_14_25.png",
+      "/portfolio/posters/艺术手法/ChatGPT Image 2026年4月26日 12_56_23.png",
+      "/portfolio/posters/节气/ChatGPT Image 2026年4月26日 12_25_18.png",
+      "/portfolio/posters/零散/Image 7.png",
+    ],
+  },
+  getArchivedProject("comic-series"),
+];
+
 const localizeRxkProject = (project: RxkProject, locale: Locale): LocalizedRxkProject => {
   if (locale !== "en") return project;
 
@@ -1010,8 +1159,6 @@ function RxkCasePrototype({
   const [rapidPhase, setRapidPhase] = useState<"idle" | "running">(
     () => (shouldAutostartInitial ? "running" : "idle"),
   );
-  const [offset, setOffset] = useState(0);
-  const [stretch, setStretch] = useState(1);
   const stageRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const rapidOverlayRef = useRef<HTMLDivElement>(null);
@@ -1039,7 +1186,9 @@ function RxkCasePrototype({
   const copy = detailCopy[locale];
   const assetBundle = PROJECT_ASSET_LIBRARY[activeProject.slug];
   const hasFolderAssets = Boolean(assetBundle && (assetBundle.image.length || assetBundle.video.length));
-  const publishedVideos = getPublishedVideoSources(assetBundle?.video);
+  const publishedVideos = activeProject.slug === "video-archive"
+    ? getPublishedVideoSources(assetBundle?.video)
+    : [];
   const rawImageSources = hasFolderAssets
     ? uniquePaths([activeProject.image, ...(assetBundle?.image ?? [])])
     : uniquePaths([activeProject.image, ...activeProject.gallery]);
@@ -1096,15 +1245,14 @@ function RxkCasePrototype({
     poster: assetPoster,
     label: `${activeProject.shortTitle} / preview`,
   };
-  const isVideoDominantProject = imageSources.length <= 1 && videoMedia.length > 0;
-  const baseMedia = isVideoDominantProject
-    ? uniqueMedia([previewCoverMedia, ...videoMedia])
-    : uniqueMedia([...imageMedia, ...videoMedia]);
+  const baseMedia = uniqueMedia(activeProject.slug === "video-archive" ? videoMedia : imageMedia);
   const cycleSize = baseMedia.length;
-  // Desktop needs 3× copies for GSAP infinite scroll; mobile only needs 1×
+  // Two copies are enough for long desktop cycles. Keep a third only for very
+  // short projects where the duplicated content may not fill the viewport.
+  const desktopCycleCopies = baseMedia.length >= 6 ? 2 : 3;
   const isMobileDetail =
     typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches;
-  const media = [...baseMedia, ...baseMedia, ...baseMedia];
+  const media = Array.from({ length: desktopCycleCopies }, () => baseMedia).flat();
   const displayMedia = isMobileDetail ? baseMedia : media;
   const rapidLayerSource = uniqueMedia([
     previewCoverMedia,
@@ -1227,33 +1375,20 @@ function RxkCasePrototype({
     setHoveredPublishedVideo(null);
   }, [activeProject.slug]);
 
-  // Prefetch images to avoid blank gaps when scrolling on mobile
+  // Keep a small warm cache on mobile. Preloading the entire project eagerly can
+  // decode dozens of large images at once and stall scrolling on real devices.
   const isMobilePrefetch =
     typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches;
+  const mobilePrefetchKey = imageSources.slice(2, 6).join("\n");
   useEffect(() => {
-    if (!isMobilePrefetch || imageSources.length <= 2) return;
+    if (!isMobilePrefetch || !mobilePrefetchKey) return;
 
-    // Eagerly preload images that are marked lazy — browser cache will serve them instantly
-    const prefetchCount = Math.min(imageSources.length, 12);
-    for (let i = 2; i < prefetchCount; i++) {
+    mobilePrefetchKey.split("\n").forEach((src) => {
       const img = new Image();
-      img.src = toPublicAssetUrl(imageSources[i]);
-    }
-    // Queue the rest at lower priority (after paint)
-    if (imageSources.length > 12) {
-      requestIdleCallback?.(() => {
-        for (let i = 12; i < imageSources.length; i++) {
-          const img = new Image();
-          img.src = toPublicAssetUrl(imageSources[i]);
-        }
-      }) ?? setTimeout(() => {
-        for (let i = 12; i < imageSources.length; i++) {
-          const img = new Image();
-          img.src = toPublicAssetUrl(imageSources[i]);
-        }
-      }, 500);
-    }
-  }, [isMobilePrefetch, activeProject.slug]);
+      img.decoding = "async";
+      img.src = toPublicAssetUrl(src);
+    });
+  }, [isMobilePrefetch, mobilePrefetchKey]);
 
   useEffect(() => {
     if (!detailOpen) {
@@ -1262,8 +1397,8 @@ function RxkCasePrototype({
       targetStretchRef.current = 1;
       currentStretchRef.current = 1;
       lastTickRef.current = null;
-      setOffset(0);
-      setStretch(1);
+      stageRef.current?.style.setProperty("--rxk-y", "0px");
+      stageRef.current?.style.setProperty("--rxk-stretch", "1");
       return;
     }
 
@@ -1272,8 +1407,8 @@ function RxkCasePrototype({
     targetStretchRef.current = 1;
     currentStretchRef.current = 1;
     lastTickRef.current = null;
-    setOffset(0);
-    setStretch(1);
+    stageRef.current?.style.setProperty("--rxk-y", "0px");
+    stageRef.current?.style.setProperty("--rxk-stretch", "1");
     window.history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
 
@@ -1306,10 +1441,12 @@ function RxkCasePrototype({
       const cycleStart = track.children[0] as HTMLElement | undefined;
       const cycleEnd = track.children[cycleSize] as HTMLElement | undefined;
       const measuredCycle =
-        cycleStart && cycleEnd ? cycleEnd.offsetTop - cycleStart.offsetTop : track.scrollHeight / 3;
+        cycleStart && cycleEnd
+          ? cycleEnd.offsetTop - cycleStart.offsetTop
+          : track.scrollHeight / desktopCycleCopies;
       cycleHeightRef.current = Math.max(1, measuredCycle);
       foldLoopState();
-      setOffset(normalizeLoopOffset(currentOffsetRef.current));
+      stage.style.setProperty("--rxk-y", `${normalizeLoopOffset(currentOffsetRef.current)}px`);
     };
 
     const render = (timestamp: number) => {
@@ -1323,8 +1460,11 @@ function RxkCasePrototype({
       currentOffsetRef.current = Math.abs(targetOffsetRef.current - next) < 0.08 ? targetOffsetRef.current : next;
       targetStretchRef.current += (1 - targetStretchRef.current) * Math.min(1, elapsed * 7.5);
       currentStretchRef.current += (targetStretchRef.current - currentStretchRef.current) * 0.16;
-      setOffset(normalizeLoopOffset(currentOffsetRef.current));
-      setStretch(Number(currentStretchRef.current.toFixed(4)));
+      const stage = stageRef.current;
+      if (stage) {
+        stage.style.setProperty("--rxk-y", `${normalizeLoopOffset(currentOffsetRef.current)}px`);
+        stage.style.setProperty("--rxk-stretch", currentStretchRef.current.toFixed(4));
+      }
       frameRef.current = window.requestAnimationFrame(render);
     };
 
@@ -1366,7 +1506,47 @@ function RxkCasePrototype({
       window.removeEventListener("resize", measure);
       window.removeEventListener("wheel", onWheel, { capture: true });
     };
-  }, [activeProject.slug, cycleSize, detailOpen]);
+  }, [activeProject.slug, cycleSize, desktopCycleCopies, detailOpen]);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const videos = Array.from(track.querySelectorAll<HTMLVideoElement>("video"));
+    if (!videos.length) return;
+
+    videos.forEach((video) => video.pause());
+    if (typeof IntersectionObserver === "undefined") {
+      void videos[0]?.play().catch(() => undefined);
+      return () => videos.forEach((video) => video.pause());
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target as HTMLVideoElement;
+          if (entry.isIntersecting) {
+            video.preload = "metadata";
+            void video.play().catch(() => undefined);
+          } else {
+            video.pause();
+          }
+        });
+      },
+      {
+        root: isMobileDetail ? null : stageRef.current,
+        rootMargin: "25% 0px",
+        threshold: 0.01,
+      },
+    );
+
+    videos.forEach((video) => observer.observe(video));
+
+    return () => {
+      observer.disconnect();
+      videos.forEach((video) => video.pause());
+    };
+  }, [activeProject.slug, cycleSize, isMobileDetail]);
 
   const handleDetailNavClick = (event: MouseEvent<HTMLAnchorElement>, slug: string) => {
     if (
@@ -1442,8 +1622,8 @@ function RxkCasePrototype({
         ref={stageRef}
         style={
           {
-            "--rxk-y": `${offset}px`,
-            "--rxk-stretch": stretch,
+            "--rxk-y": "0px",
+            "--rxk-stretch": 1,
           } as CSSProperties
         }
       >
@@ -1451,17 +1631,7 @@ function RxkCasePrototype({
           <div className="rxk-detail-page__track" ref={trackRef}>
             {displayMedia.map((item, index) => (
               <figure className="rxk-detail-page__media" key={`${item.src}-${index}`}>
-                {item.type === "video" && getPlayableVideoUrl(item.src) ? (
-                  <video
-                    src={getPlayableVideoUrl(item.src) ?? undefined}
-                    poster={toPublicAssetUrl(item.poster)}
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                    preload="metadata"
-                  />
-                ) : item.type === "video" && getPublishedPortfolioVideo(item.src) ? (
+                {item.type === "video" && getPublishedPortfolioVideo(item.src) ? (
                   <div
                     className="rxk-detail-page__published-video"
                     onMouseEnter={() => {
@@ -1501,6 +1671,15 @@ function RxkCasePrototype({
                       <span className="rxk-detail-page__media-chip">{copy.watchVideo}</span>
                     </a>
                   </div>
+                ) : item.type === "video" && getPlayableVideoUrl(item.src) ? (
+                  <video
+                    src={getPlayableVideoUrl(item.src) ?? undefined}
+                    poster={toPublicAssetUrl(item.poster)}
+                    muted
+                    loop
+                    playsInline
+                    preload="none"
+                  />
                 ) : (
                   <img src={toPublicAssetUrl(item.src)} alt="" loading={index < 2 ? "eager" : "lazy"} decoding="async" />
                 )}
@@ -1545,10 +1724,6 @@ function RxkCasePrototype({
                   </div>
                 </div>
               ) : null}
-              <div className="rxk-detail-page__meta-awards">
-                <h2>{copy.awards}</h2>
-                <p>{copy.none}</p>
-              </div>
               <div className="rxk-detail-page__meta-type">
                 <h2>{copy.type}</h2>
                 <p>{activeProject.category}</p>
@@ -1629,7 +1804,7 @@ function SequenceApp({
   const [homeAnimationReady, setHomeAnimationReady] = useState(false);
   const [loaderReady, setLoaderReady] = useState(false);
   const [fontsReady, setFontsReady] = useState(false);
-  const [preloadComplete, setPreloadComplete] = useState(false);
+  const [criticalAssetsReady, setCriticalAssetsReady] = useState(skipLoader);
   const [loaderStatusIndex, setLoaderStatusIndex] = useState(0);
   const [stage, setStage] = useState<"sequence" | "third">(initialStage);
   const [thirdInitialProgress, setThirdInitialProgress] = useState(0);
@@ -1791,12 +1966,12 @@ function SequenceApp({
       homeAnimationReady &&
       loaderFrameReady &&
       fontsReady &&
-      preloadComplete;
+      criticalAssetsReady;
 
     const progress = allReady
       ? 1
       : homeAnimationReady
-        ? Math.max(0.72, 0.72 + (fontsReady ? 0.12 : 0) + (preloadComplete ? 0.16 : 0))
+        ? Math.max(0.72, 0.72 + (fontsReady ? 0.12 : 0) + (criticalAssetsReady ? 0.16 : 0))
         : loaderFrameReady
           ? Math.max(0.28 + loaderStatusIndex * 0.08, 0.35)
           : 0.08;
@@ -1812,31 +1987,40 @@ function SequenceApp({
       },
       getFrameTargetOrigin(),
     );
-  }, [homeAnimationReady, loaderFrameReady, fontsReady, preloadComplete, loaderStatusIndex]);
+  }, [homeAnimationReady, loaderFrameReady, fontsReady, criticalAssetsReady, loaderStatusIndex]);
 
-  // Preload ALL project images during loader phase — track completion so we can gate on it
+  // Only warm the first transition frames during the blocking loader. The rest
+  // is queued after the interface becomes idle so startup is not held hostage by
+  // the complete portfolio archive.
   useEffect(() => {
     if (!loaderFrameReady || !showLoader) return;
-    const loaded = new Set<string>();
-    const promises: Promise<void>[] = [];
-    rxkProjects.forEach((project) => {
-      const media = getRapidLayerMedia(project.slug, locale);
-      media.forEach((m) => {
-        const url = m.type === "image" ? m.src : m.poster;
-        if (url && !loaded.has(url)) {
-          loaded.add(url);
-          promises.push(
-            new Promise<void>((resolve) => {
-              const img = new Image();
-              img.onload = () => resolve();
-              img.onerror = () => resolve(); // still resolve on error — don't block forever
-              img.src = url;
-            }),
-          );
-        }
-      });
+    let cancelled = false;
+    const criticalUrls = Array.from(
+      new Set(
+        getRapidLayerMedia(rxkProjects[0].slug, locale)
+          .slice(0, 2)
+          .map((media) => media.type === "image" ? media.src : media.poster)
+          .filter((url): url is string => Boolean(url)),
+      ),
+    );
+
+    Promise.all(
+      criticalUrls.map(
+        (url) => new Promise<void>((resolve) => {
+          const img = new Image();
+          img.decoding = "async";
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          img.src = toPublicAssetUrl(url);
+        }),
+      ),
+    ).then(() => {
+      if (!cancelled) setCriticalAssetsReady(true);
     });
-    Promise.all(promises).then(() => setPreloadComplete(true));
+
+    return () => {
+      cancelled = true;
+    };
   }, [loaderFrameReady, showLoader, locale]);
 
   // Track custom font loading completion — fonts are the first visual impression
@@ -1846,12 +2030,12 @@ function SequenceApp({
   }, [showLoader]);
 
   useEffect(() => {
-    if (homeAnimationReady && loaderFrameReady && fontsReady && preloadComplete) {
+    if (homeAnimationReady && loaderFrameReady && fontsReady && criticalAssetsReady) {
       const timer = window.setTimeout(() => setLoaderReady(true), 620);
 
       return () => window.clearTimeout(timer);
     }
-  }, [homeAnimationReady, loaderFrameReady, fontsReady, preloadComplete]);
+  }, [homeAnimationReady, loaderFrameReady, fontsReady, criticalAssetsReady]);
 
   useEffect(() => {
     if (!showLoader) return;
@@ -1861,7 +2045,7 @@ function SequenceApp({
       homeAnimationReady &&
       loaderFrameReady &&
       fontsReady &&
-      preloadComplete;
+      criticalAssetsReady;
 
     if (allReady) {
       setLoaderStatusIndex(loaderStatusMessages.length - 1);
@@ -1886,7 +2070,7 @@ function SequenceApp({
     );
 
     return () => timers.forEach((timer) => window.clearTimeout(timer));
-  }, [showLoader, loaderFrameReady, homeAnimationReady]);
+  }, [showLoader, loaderFrameReady, homeAnimationReady, fontsReady, criticalAssetsReady]);
 
   useEffect(() => {
     document.body.classList.toggle("sequence-scroll-locked", showLoader);
@@ -2110,8 +2294,10 @@ function SequenceApp({
     inputLayer?.addEventListener("touchmove", wrappedTouchMove, touchOptions);
     document.addEventListener("touchmove", wrappedTouchMove, touchOptions);
     window.addEventListener("touchmove", wrappedTouchMove, touchOptions);
-    window.addEventListener("touchend", (e) => releaseTouch(e as globalThis.TouchEvent), touchOptions);
-    window.addEventListener("touchcancel", (e) => releaseTouch(e as globalThis.TouchEvent), touchOptions);
+    const handleTouchEnd = (event: globalThis.TouchEvent) => releaseTouch(event);
+    const handleTouchCancel = (event: globalThis.TouchEvent) => releaseTouch(event);
+    window.addEventListener("touchend", handleTouchEnd, touchOptions);
+    window.addEventListener("touchcancel", handleTouchCancel, touchOptions);
 
     // Desktop click: navigate when clicking on a thumbnail / work item inside the iframe
     // Use native MouseEvent (not React's) for window.addEventListener compatibility
@@ -2121,19 +2307,34 @@ function SequenceApp({
     window.addEventListener("click", handleClick, { capture: true });
 
     // Desktop hover: show pointer cursor when hovering over clickable elements inside iframe
-    const handleMouseMove = (event: globalThis.MouseEvent) => {
+    let hoverFrame: number | null = null;
+    let hoverX = 0;
+    let hoverY = 0;
+    let cursorIsPointer = false;
+    const updateHoverCursor = () => {
+      hoverFrame = null;
       const iframe = linkedFrameRef.current;
       if (!iframe) return;
       try {
         const doc = iframe.contentDocument || (iframe.contentWindow as any)?.document;
         if (!doc) return;
-        const el = doc.elementFromPoint(event.clientX, event.clientY);
+        const el = doc.elementFromPoint(hoverX, hoverY);
         if (!el) return;
         const isClickable = !!el?.closest(
           ".image-thumbnail-wrapper, .image-thumbnail, .image-thumbnail-title, .image-thumbnail-year, .animated-text",
         );
-        document.body.style.cursor = isClickable ? "pointer" : "";
+        if (isClickable !== cursorIsPointer) {
+          cursorIsPointer = isClickable;
+          document.body.style.cursor = isClickable ? "pointer" : "";
+        }
       } catch (_e) { /* cross-origin */ }
+    };
+    const handleMouseMove = (event: globalThis.MouseEvent) => {
+      hoverX = event.clientX;
+      hoverY = event.clientY;
+      if (hoverFrame === null) {
+        hoverFrame = window.requestAnimationFrame(updateHoverCursor);
+      }
     };
     window.addEventListener("mousemove", handleMouseMove, { capture: true });
 
@@ -2150,10 +2351,12 @@ function SequenceApp({
       inputLayer?.removeEventListener("touchmove", wrappedTouchMove, touchOptions);
       document.removeEventListener("touchmove", wrappedTouchMove, touchOptions);
       window.removeEventListener("touchmove", wrappedTouchMove, touchOptions);
-      window.removeEventListener("touchend", releaseTouch, touchOptions);
-      window.removeEventListener("touchcancel", releaseTouch, touchOptions);
+      window.removeEventListener("touchend", handleTouchEnd, touchOptions);
+      window.removeEventListener("touchcancel", handleTouchCancel, touchOptions);
       window.removeEventListener("click", handleClick, { capture: true });
       window.removeEventListener("mousemove", handleMouseMove, { capture: true });
+      if (hoverFrame !== null) window.cancelAnimationFrame(hoverFrame);
+      document.body.style.cursor = "";
     };
   }, [stage, thirdInputActive, thirdFrameReady]);
 
@@ -2544,7 +2747,7 @@ function SequenceApp({
               <h1>{locale === "zh" ? "作品 / Opus" : "Works / Opus"}</h1>
               <span>
                 {locale === "zh"
-                  ? "品牌 / 宣发 / 实验 / 海报 / 体系"
+                  ? "品牌 / 时尚 / 影像 / 平面 / 实验"
                   : "Brand / Promo / Experiment / Poster / System"}
               </span>
             </aside>
@@ -2639,17 +2842,39 @@ function App() {
   // so they're ready in cache by the time user clicks any item
   const preloadAllRapidImages = useCallback(() => {
     const loaded = new Set<string>();
+    const urls: string[] = [];
     rxkProjects.forEach((project) => {
       const media = getRapidLayerMedia(project.slug, locale);
       media.forEach((m) => {
         const url = m.type === "image" ? m.src : m.poster;
         if (url && !loaded.has(url)) {
           loaded.add(url);
-          const img = new Image();
-          img.src = url; // fire-and-forget: browser caches on load
+          urls.push(toPublicAssetUrl(url));
         }
       });
     });
+
+    let index = 0;
+    const loadBatch = () => {
+      const batchEnd = Math.min(index + 2, urls.length);
+      for (; index < batchEnd; index += 1) {
+        const img = new Image();
+        img.decoding = "async";
+        img.src = urls[index];
+      }
+      if (index >= urls.length) return;
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(loadBatch, { timeout: 1500 });
+      } else {
+        globalThis.setTimeout(loadBatch, 220);
+      }
+    };
+
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(loadBatch, { timeout: 1200 });
+    } else {
+      globalThis.setTimeout(loadBatch, 180);
+    }
   }, [locale]);
 
   const startWorkDetailTransition = useCallback(

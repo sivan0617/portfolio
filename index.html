@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="inline-loader-active">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
@@ -7,7 +7,9 @@
 
     <!-- ⚡ CRITICAL: inline loader — renders at T+0ms with animation, font text fades in later -->
     <style>
-      html, body { background: #000; margin: 0; padding: 0; overflow: hidden; }
+      html, body { background: #000; margin: 0; padding: 0; }
+      html.inline-loader-active,
+      html.inline-loader-active body { overflow: hidden; }
       #root { min-height: 100vh; }
 
       /* ── Full-screen animated loader (visible immediately) ── */
@@ -118,16 +120,15 @@
         }, 800);
       }
       // Phase 3: React takes over → hide inline loader (or 6s failsafe)
-      window.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-          var el = document.getElementById('inline-loader');
-          if (el) el.classList.add('inline-loader--hidden');
-        }, 6000);
-      });
-      window.__hideInlineLoader = function() {
+      function hideInlineLoader() {
         var el = document.getElementById('inline-loader');
         if (el) el.classList.add('inline-loader--hidden');
-      };
+        document.documentElement.classList.remove('inline-loader-active');
+      }
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(hideInlineLoader, 6000);
+      });
+      window.__hideInlineLoader = hideInlineLoader;
     </script>
   </body>
 </html>

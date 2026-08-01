@@ -79,7 +79,7 @@ const selectedPublicAssets = (): Plugin => {
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: process.env.NODE_ENV === "production" ? "/portfolio/" : "/",
+  base: "/",
   publicDir: false,
   plugins: [react(), tailwindcss(), selectedPublicAssets()],
   server: {
